@@ -129,47 +129,43 @@
       });
       addPinLayer(map, activeMarkerLayerId, activeMarkerSourceId, 'add-marker');
 
-      map.on(
-        'click',
-        markerLayerId,
-        function (e) {
-          isMomentLayerClicked = true;
-          if (!e.features || e.features.length === 0) {
-            return;
-          }
-
-          const feature = e.features[0];
-          if (feature.geometry.type !== 'Point') {
-            return;
-          }
-
-          const coordinates = feature.geometry.coordinates;
-          if (typeof feature.id !== 'number') {
-            console.error('Invalid feature id:', feature.id);
-            return;
-          }
-
-          getMoment(feature.id)
-            .then((text) => {
-              const description = text;
-              if (coordinates.length === 2) {
-                new Popup({
-                  offset: [0, -markerHeight],
-                  anchor: 'bottom',
-                  maxWidth: 'none'
-                })
-                  .setLngLat(coordinates)
-                  .setHTML(description)
-                  .addTo(map);
-              } else {
-                console.error('Invalid coordinates format');
-              }
-            })
-            .catch((error) => {
-              console.error('Error fetching moment:', error);
-            });
+      map.on('click', markerLayerId, function (e) {
+        isMomentLayerClicked = true;
+        if (!e.features || e.features.length === 0) {
+          return;
         }
-      );
+
+        const feature = e.features[0];
+        if (feature.geometry.type !== 'Point') {
+          return;
+        }
+
+        const coordinates = feature.geometry.coordinates;
+        if (typeof feature.id !== 'number') {
+          console.error('Invalid feature id:', feature.id);
+          return;
+        }
+
+        getMoment(feature.id)
+          .then((text) => {
+            const description = text;
+            if (coordinates.length === 2) {
+              new Popup({
+                offset: [0, -markerHeight],
+                anchor: 'bottom',
+                maxWidth: 'none'
+              })
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(map);
+            } else {
+              console.error('Invalid coordinates format');
+            }
+          })
+          .catch((error) => {
+            console.error('Error fetching moment:', error);
+          });
+      });
 
       let hoveredFeatureId = null;
 
