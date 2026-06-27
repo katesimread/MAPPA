@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { writable } from 'svelte/store';
 
   const showToast = writable(true);

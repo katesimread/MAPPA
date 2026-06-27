@@ -1,6 +1,6 @@
-<script lang="ts">
-  export let isDisabled: boolean;
-  export let functionOnClick: () => void;
+<script>
+  export let isDisabled;
+  export let functionOnClick;
 </script>
 
 <div class="button-wrapper">

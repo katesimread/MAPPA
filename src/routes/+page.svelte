@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import '$lib/style.css';
   import '$lib/maplibre_style.css';
   import '$lib/navbar_buttons.css';

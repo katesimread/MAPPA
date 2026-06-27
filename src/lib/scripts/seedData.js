@@ -1,0 +1,108 @@
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { roundCoordinates } from '$lib/utils/utils';
+
+function getRandomCoordinate(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function generateRandomWord() {
+  return (Math.random() + 1).toString(36).substring(9);
+}
+
+function generateRandomDescription(id) {
+  const numWords = Math.floor(Math.random() * 16) + 2;
+  const words = [];
+  for (let i = 0; i < numWords; i++) {
+    words.push(generateRandomWord());
+  }
+  return `Description ${id} ${words.join(' ')}`;
+}
+
+function generateRandomMoment(id) {
+  const longitude = getRandomCoordinate(-180, 180);
+  const latitude = getRandomCoordinate(-90, 90);
+
+  const point = {
+    type: 'Point',
+    coordinates: roundCoordinates([longitude, latitude], 6)
+  };
+
+  const feature = {
+    type: 'Feature',
+    id: id,
+    geometry: point,
+    properties: {}
+  };
+
+  return feature;
+}
+
+function generateAndSaveMoments(count, filePath) {
+  const features = [];
+
+  for (let i = 1; i <= count; i++) {
+    features.push(generateRandomMoment(i));
+  }
+
+  const moments = {
+    type: 'FeatureCollection',
+    features: features
+  };
+
+  const simplifiedMoments = {
+    ...moments,
+    // eslint-disable-next-line no-unused-vars
+    features: moments.features.map(({ properties, ...rest }) => rest)
+  };
+
+  saveToFile(simplifiedMoments, filePath);
+}
+
+function generateAndSaveDescriptions(count, filePath) {
+  const descriptions = {};
+
+  for (let i = 1; i <= count; i++) {
+    descriptions[i] = generateRandomDescription(i);
+  }
+
+  saveToFile(descriptions, filePath);
+}
+
+function saveToFile(data, filePath) {
+  const dir = dirname(filePath);
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+
+  writeFileSync(filePath, JSON.stringify(data));
+  console.log(`Saved data to ${filePath}`);
+}
+
+function parseArguments(args) {
+  const result = {};
+  for (let i = 0; i < args.length; i += 2) {
+    const key = args[i].replace('--', '');
+    const value = args[i + 1];
+    result[key] = value;
+  }
+  return result;
+}
+
+const DEFAULT_NUMBER_OF_MOMENTS = 99999;
+
+const args = process.argv.slice(2);
+const parsedArgs = parseArguments(args);
+
+let numberOfMoments = parseInt(parsedArgs['number-of-features'], 10);
+
+if (isNaN(numberOfMoments) || numberOfMoments <= 0) {
+  numberOfMoments = DEFAULT_NUMBER_OF_MOMENTS;
+}
+
+const rootPath = process.cwd();
+const momentsFilePath = join(rootPath, 'static/data', 'moments.json');
+const descriptionsFilePath = join(rootPath, 'static/data', 'descriptions.json');
+
+generateAndSaveMoments(numberOfMoments, momentsFilePath);
+generateAndSaveDescriptions(numberOfMoments, descriptionsFilePath);

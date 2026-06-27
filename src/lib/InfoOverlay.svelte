@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
   import { infoOverlayVisible } from '../stores';
   import CloseButton from './CloseButton.svelte';
 
@@ -6,37 +6,17 @@
   import pressData from '$lib/content/press.yaml';
   import faqsData from '$lib/content/faqs.yaml';
 
-  interface Tab {
-    key: string;
-    label: string;
-    Component?: import('svelte').ComponentType;
-  }
-
-  interface PressItem {
-    outlet: string;
-    title: string;
-    url: string;
-    author?: string;
-    year?: number;
-    featured?: boolean;
-  }
-
-  interface FaqItem {
-    q: string;
-    a: string;
-  }
-
   const mods = import.meta.glob('$lib/content/info/*.md', {
     eager: true
-  }) as Record<string, { default: import('svelte').ComponentType }>;
+  });
 
-  const markdownByKey: Record<string, import('svelte').ComponentType> = {};
+  const markdownByKey = {};
   for (const [path, mod] of Object.entries(mods)) {
     const key = path.split('/').pop()?.replace('.md', '') ?? '';
     markdownByKey[key] = mod.default;
   }
 
-  const sections = (tabs as Tab[]).map((t) => ({
+  const sections = tabs.map((t) => ({
     ...t,
     Component: markdownByKey[t.key] || undefined
   }));
@@ -48,16 +28,16 @@
 
   $: if (activeKey) localStorage.setItem(LS_KEY, activeKey);
 
-  function selectTab(key: string) {
+  function selectTab(key) {
     activeKey = key;
     container?.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  let container: HTMLElement;
+  let container;
 
-  $: featuredPress = (pressData as PressItem[]).filter((p) => p.featured);
-  $: allPress = (pressData as PressItem[]).filter((p) => !p.featured);
-  $: faqsList = faqsData as FaqItem[];
+  $: featuredPress = pressData.filter((p) => p.featured);
+  $: allPress = pressData.filter((p) => !p.featured);
+  $: faqsList = faqsData;
 
   function closeInfoOverlay() {
     infoOverlayVisible.update(() => false);

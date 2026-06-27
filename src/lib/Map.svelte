@@ -1,13 +1,6 @@
-<script lang="ts">
+<script>
   import { onMount, onDestroy } from 'svelte';
-  import maplibregl, {
-    type Map as MapType,
-    type LngLatLike,
-    type GeoJSONSource,
-    type StyleSpecification,
-    type MapMouseEvent,
-    type MapGeoJSONFeature
-  } from 'maplibre-gl';
+  import maplibregl from 'maplibre-gl';
   const {
     AttributionControl,
     Map,
@@ -19,13 +12,12 @@
   import markerImage from '$lib/assets/marker.png';
   import markerHoveredImage from '$lib/assets/marker-hovered.png';
   import styleJson from '$lib/data/pmtiles/style.json';
-  const style = styleJson as StyleSpecification;
+  const style = styleJson;
   import addMarkerImage from '$lib/assets/add-marker.png';
   import { activeMarkerCoords } from '../stores';
-  import type { FeatureCollection, Point, GeoJsonProperties } from 'geojson';
 
-  let map: MapType;
-  let mapContainer: HTMLDivElement;
+  let map;
+  let mapContainer;
   let isMomentLayerClicked = false;
 
   const initialState = { lng: -73.567256, lat: 45.501689, zoom: 12.5 };
@@ -37,12 +29,12 @@
   const activeMarkerSourceId = 'active-marker-source';
   const activeMarkerLayerId = 'active-marker-layer';
 
-  const activeMarkerGeoJSON: FeatureCollection<Point, GeoJsonProperties> = {
+  const activeMarkerGeoJSON = {
     type: 'FeatureCollection',
     features: []
   };
 
-  async function getMoment(id?: number | string) {
+  async function getMoment(id) {
     try {
       const response = await fetch(`/moment/${id}`);
       const moment = await response.json();
@@ -53,11 +45,7 @@
     }
   }
 
-  async function loadImageAndAddToMap(
-    map: MapType,
-    imageUrl: string,
-    imageId: string
-  ) {
+  async function loadImageAndAddToMap(map, imageUrl, imageId) {
     try {
       const image = await map.loadImage(imageUrl);
       map.addImage(imageId, image.data);
@@ -66,13 +54,7 @@
     }
   }
 
-  function addPinLayer(
-    map: MapType,
-    layerId: string,
-    sourceId: string,
-    iconImage: string,
-    paint: object = {}
-  ) {
+  function addPinLayer(map, layerId, sourceId, iconImage, paint = {}) {
     map.addLayer({
       id: layerId,
       type: 'symbol',
@@ -150,7 +132,7 @@
       map.on(
         'click',
         markerLayerId,
-        function (e: MapMouseEvent & { features?: MapGeoJSONFeature[] }) {
+        function (e) {
           isMomentLayerClicked = true;
           if (!e.features || e.features.length === 0) {
             return;
@@ -161,7 +143,7 @@
             return;
           }
 
-          const coordinates = (feature.geometry as Point).coordinates;
+          const coordinates = feature.geometry.coordinates;
           if (typeof feature.id !== 'number') {
             console.error('Invalid feature id:', feature.id);
             return;
@@ -176,7 +158,7 @@
                   anchor: 'bottom',
                   maxWidth: 'none'
                 })
-                  .setLngLat(coordinates as LngLatLike)
+                  .setLngLat(coordinates)
                   .setHTML(description)
                   .addTo(map);
               } else {
@@ -189,14 +171,12 @@
         }
       );
 
-      let hoveredFeatureId: number | null = null;
+      let hoveredFeatureId = null;
 
-      const pointerHoverHandler = (
-        e: MapMouseEvent & { features?: MapGeoJSONFeature[] }
-      ) => {
+      const pointerHoverHandler = (e) => {
         map.getCanvas().style.cursor = 'pointer';
         if (e.features && e.features.length > 0) {
-          const newHoveredFeatureId = e.features[0].id as number;
+          const newHoveredFeatureId = e.features[0].id;
           if (
             hoveredFeatureId !== null &&
             hoveredFeatureId !== newHoveredFeatureId
@@ -227,7 +207,7 @@
         }
       });
 
-      map.on('click', (e: MapMouseEvent) => {
+      map.on('click', (e) => {
         if (isMomentLayerClicked) {
           isMomentLayerClicked = false;
           return;
@@ -252,7 +232,7 @@
         }
       ];
 
-      const source = map?.getSource(activeMarkerSourceId) as GeoJSONSource;
+      const source = map?.getSource(activeMarkerSourceId);
       if (source) {
         source.setData(activeMarkerGeoJSON);
       }

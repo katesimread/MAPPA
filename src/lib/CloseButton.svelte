@@ -1,6 +1,6 @@
-<script lang="ts">
-  export let functionOnClick: () => void;
-  export let position: 'right' | 'left' = 'left';
+<script>
+  export let functionOnClick;
+  export let position = 'left';
 </script>
 
 <button
