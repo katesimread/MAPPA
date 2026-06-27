@@ -57,7 +57,7 @@ export async function writeGeoJsonToFile(geoJson) {
 
   const simplifiedGeoJson = {
     ...geoJson,
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     features: geoJson.features.map(({ properties, ...rest }) => rest)
   };
 

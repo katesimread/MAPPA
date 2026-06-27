@@ -52,7 +52,7 @@ function generateAndSaveMoments(count, filePath) {
 
   const simplifiedMoments = {
     ...moments,
-    // eslint-disable-next-line no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     features: moments.features.map(({ properties, ...rest }) => rest)
   };
 

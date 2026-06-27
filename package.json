@@ -12,8 +12,8 @@
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
     "test:integration": "playwright test",
-    "fetch-data": "npx vite-node --options.transformMode.ssr='/.*/' src/lib/scripts/fetchData.ts",
-    "seed-data": "npx vite-node --options.transformMode.ssr='/.*/' src/lib/scripts/seedData.ts",
+    "fetch-data": "npx vite-node --options.transformMode.ssr='/.*/' src/lib/scripts/fetchData.js",
+    "seed-data": "npx vite-node --options.transformMode.ssr='/.*/' src/lib/scripts/seedData.js",
     "prepare": "husky"
   },
   "devDependencies": {
