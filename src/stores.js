@@ -12,3 +12,5 @@ export const infoOverlayActiveTab = (active_tab) => {
 };
 
 export const activeMarkerCoords = writable(null);
+export const searchLocation = writable(null);
+export const categoryFilter = writable(null);

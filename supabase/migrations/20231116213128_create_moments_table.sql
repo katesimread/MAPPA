@@ -5,7 +5,7 @@ create table
     id uuid not null default gen_random_uuid (),
     short_id int NOT NULL DEFAULT nextval('public.moments_short_id_seq'::regclass),
     created_at timestamp with time zone not null default now(),
-    location geometry null,
+    location extensions.geometry null,
     description text null,
     status text null,
     language character varying(2) null,

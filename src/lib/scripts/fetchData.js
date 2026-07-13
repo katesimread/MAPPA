@@ -4,9 +4,16 @@ import path from 'path';
 import { roundCoordinates } from '$lib/utils/utils';
 
 export async function fetchIdCoords() {
+  const BRITISH_ISLES_BOUNDS = {
+    minLng: -10.6,
+    maxLng: 1.8,
+    minLat: 49.9,
+    maxLat: 60.9
+  };
+
   const { data, error } = await supabase
     .from('moments')
-    .select('short_id, location')
+    .select('short_id, location, category')
     .eq('status', 'approved');
 
   if (error) {
@@ -16,15 +23,25 @@ export async function fetchIdCoords() {
 
   const geoJson = {
     type: 'FeatureCollection',
-    features: data.map((moment) => ({
-      type: 'Feature',
-      id: moment.short_id,
-      geometry: {
-        type: 'Point',
-        coordinates: roundCoordinates(moment.location.coordinates, 6)
-      },
-      properties: {}
-    }))
+    features: data
+      .filter((moment) => {
+        const [lng, lat] = moment.location.coordinates;
+        return (
+          lng >= BRITISH_ISLES_BOUNDS.minLng &&
+          lng <= BRITISH_ISLES_BOUNDS.maxLng &&
+          lat >= BRITISH_ISLES_BOUNDS.minLat &&
+          lat <= BRITISH_ISLES_BOUNDS.maxLat
+        );
+      })
+      .map((moment) => ({
+        type: 'Feature',
+        id: moment.short_id,
+        geometry: {
+          type: 'Point',
+          coordinates: roundCoordinates(moment.location.coordinates, 6)
+        },
+        properties: { category: moment.category }
+      }))
   };
 
   return geoJson;
@@ -55,14 +72,8 @@ export async function writeGeoJsonToFile(geoJson) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const simplifiedGeoJson = {
-    ...geoJson,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    features: geoJson.features.map(({ properties, ...rest }) => rest)
-  };
-
   const filePath = path.resolve(outputDir, 'moments.json');
-  await fs.promises.writeFile(filePath, JSON.stringify(simplifiedGeoJson));
+  await fs.promises.writeFile(filePath, JSON.stringify(geoJson));
   return filePath;
 }
 

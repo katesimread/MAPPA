@@ -12,6 +12,8 @@
   import { SvelteToast, toast } from '@zerodevx/svelte-toast';
 
   let momentDescription = '';
+  let momentCategory = '';
+  let momentLink = '';
   let captchaToken = '';
   let isAddButtonDisabled = true;
   let requestCaptcha = false;
@@ -41,7 +43,8 @@
   $: isAddButtonDisabled =
     !$activeMarkerCoords?.lng ||
     !$activeMarkerCoords?.lat ||
-    !momentDescription;
+    !momentDescription ||
+    !momentCategory;
 
   async function handleAddMoment() {
     if (!captchaToken) {
@@ -53,6 +56,8 @@
       lng: $activeMarkerCoords?.lng,
       lat: $activeMarkerCoords?.lat,
       description: momentDescription,
+      category: momentCategory,
+      link: momentLink,
       captchaToken
     });
 
@@ -118,6 +123,20 @@
               id="txt_contents"
               class="subform"
             ></textarea>
+
+            <select bind:value={momentCategory} class="category-select">
+              <option value="" disabled>Select a category</option>
+              <option value="food">Food</option>
+              <option value="fun">Fun</option>
+              <option value="other">Other</option>
+            </select>
+
+            <input
+              type="text"
+              bind:value={momentLink}
+              class="link-input"
+              placeholder="Share a website link (optional)"
+            />
 
             {#if requestCaptcha}
               <div
@@ -326,6 +345,29 @@
   textarea {
     font-family: 'Apfel Grotezk', sans-serif;
     resize: vertical;
+  }
+
+  .category-select {
+    width: 100%;
+    margin-top: 0.5em;
+    padding: 0.5em;
+    font-family: 'Apfel Grotezk', sans-serif;
+    font-size: 12pt;
+    background-color: #f4b9d6;
+    border: 1.01px solid var(--color-dark);
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+
+  .link-input {
+    width: 100%;
+    margin-top: 0.5em;
+    padding: 0.5em;
+    font-family: 'Apfel Grotezk', sans-serif;
+    font-size: 12pt;
+    background-color: #f4b9d6;
+    border: 1.01px solid var(--color-dark);
+    box-sizing: border-box;
   }
 
   .action-button-container {

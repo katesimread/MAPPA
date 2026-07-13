@@ -19,6 +19,8 @@ function generateRandomDescription(id) {
   return `Description ${id} ${words.join(' ')}`;
 }
 
+const CATEGORIES = ['food', 'fun', 'other'];
+
 function generateRandomMoment(id) {
   const longitude = getRandomCoordinate(-180, 180);
   const latitude = getRandomCoordinate(-90, 90);
@@ -32,7 +34,9 @@ function generateRandomMoment(id) {
     type: 'Feature',
     id: id,
     geometry: point,
-    properties: {}
+    properties: {
+      category: CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)]
+    }
   };
 
   return feature;
@@ -50,13 +54,7 @@ function generateAndSaveMoments(count, filePath) {
     features: features
   };
 
-  const simplifiedMoments = {
-    ...moments,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    features: moments.features.map(({ properties, ...rest }) => rest)
-  };
-
-  saveToFile(simplifiedMoments, filePath);
+  saveToFile(moments, filePath);
 }
 
 function generateAndSaveDescriptions(count, filePath) {
