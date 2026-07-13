@@ -3,7 +3,10 @@
   import { searchLocation } from '../stores';
   import proj4 from 'proj4';
 
-  proj4.defs('EPSG:27700', '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.1502,0.247,0.8421,-20.4894 +units=m +no_defs');
+  proj4.defs(
+    'EPSG:27700',
+    '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.1502,0.247,0.8421,-20.4894 +units=m +no_defs'
+  );
 
   function bngToWgs84(easting, northing) {
     const [lng, lat] = proj4('EPSG:27700', 'EPSG:4326', [easting, northing]);
@@ -72,7 +75,9 @@
           <button on:click={() => select(result)}>
             {result.GAZETTEER_ENTRY.NAME1}
             {#if result.GAZETTEER_ENTRY.COUNTY_UNITARY}
-              <span class="result-detail">{result.GAZETTEER_ENTRY.COUNTY_UNITARY}</span>
+              <span class="result-detail"
+                >{result.GAZETTEER_ENTRY.COUNTY_UNITARY}</span
+              >
             {/if}
           </button>
         </li>
@@ -101,7 +106,7 @@
     border: none;
     border-radius: 4px;
     font-size: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
   button {
@@ -112,7 +117,7 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 
   button:disabled {
@@ -126,7 +131,7 @@
     padding: 0;
     background: white;
     border-radius: 4px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     overflow: hidden;
   }
 
@@ -159,6 +164,6 @@
     border-radius: 4px;
     font-size: 13px;
     color: #c00;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
   }
 </style>
