@@ -5,8 +5,7 @@
   import 'maplibre-gl/dist/maplibre-gl.css';
   import markerImage from '$lib/assets/marker.png';
   import markerHoveredImage from '$lib/assets/marker-hovered.png';
-  import { PUBLIC_OS_API_KEY } from '$env/static/public';
-  const style = `https://api.os.uk/maps/vector/v1/vts/resources/styles?srs=3857&key=${PUBLIC_OS_API_KEY}`;
+  const style = 'https://tiles.openfreemap.org/styles/positron';
   import addMarkerImage from '$lib/assets/add-marker.png';
   import {
     activeMarkerCoords,
@@ -18,10 +17,25 @@
   let mapContainer;
   let isMomentLayerClicked = false;
 
-  const UK_BOUNDS = [
-    [-8.6, 49.9],
-    [1.8, 60.9]
-  ];
+  const UK_CENTER = [-3.4, 55.4];
+  const INITIAL_ZOOM = 4.75;
+
+  // Keep in sync with BRITISH_ISLES_BOUNDS in src/routes/moments/+server.js
+  const BRITISH_ISLES_BOUNDS = {
+    minLng: -10.6,
+    maxLng: 1.8,
+    minLat: 49.9,
+    maxLat: 60.9
+  };
+
+  function isWithinBritishIsles(lng, lat) {
+    return (
+      lng >= BRITISH_ISLES_BOUNDS.minLng &&
+      lng <= BRITISH_ISLES_BOUNDS.maxLng &&
+      lat >= BRITISH_ISLES_BOUNDS.minLat &&
+      lat <= BRITISH_ISLES_BOUNDS.maxLat
+    );
+  }
 
   const markerHeight = 39;
   const markerId = 'moments';
@@ -70,13 +84,55 @@
     });
   }
 
+  const ROAD_COLORS = {
+    Motorway: { casing: '#99004d', fill: '#ff00ff' },
+    'Guided Busway': { casing: '#99004d', fill: '#ff00ff' },
+    Primary: { casing: '#b30058', fill: '#e8629c' },
+    'A Road': { casing: '#c71f6b', fill: '#f4b9d6' },
+    'B Road': { casing: '#d1487f', fill: '#f7cbdd' },
+    Restricted: { casing: '#d1487f', fill: '#f7cbdd' },
+    Minor: { casing: '#db6f96', fill: '#fbdce9' },
+    Local: { casing: '#e494ac', fill: '#fdeef4' }
+  };
+  const ROAD_AREA_FILL = '#fdeef4';
+  const ROAD_LABEL_COLOR = '#422232';
+
+  function recolorRoads(map) {
+    for (const layer of map.getStyle().layers) {
+      if (layer.type === 'line' && layer['source-layer'] === 'Roads') {
+        const [, roadClass, variant] =
+          layer.id.match(/^OS\/Roads\/([^,]+),.*[/_](\d)$/) ?? [];
+        const colors = ROAD_COLORS[roadClass];
+        if (colors) {
+          map.setPaintProperty(
+            layer.id,
+            'line-color',
+            variant === '1' ? colors.casing : colors.fill
+          );
+        }
+      } else if (
+        layer.type === 'symbol' &&
+        (layer['source-layer'] === 'Roads/label' ||
+          (layer['source-layer'] === 'CartographicText' &&
+            layer.id.includes('Roads')))
+      ) {
+        map.setPaintProperty(layer.id, 'text-color', ROAD_LABEL_COLOR);
+      } else if (
+        layer.type === 'fill' &&
+        (layer.id.includes('Road') || layer.id.includes('Roadside'))
+      ) {
+        map.setPaintProperty(layer.id, 'fill-color', ROAD_AREA_FILL);
+      }
+    }
+  }
+
   onMount(() => {
     map = new Map({
       container: mapContainer,
       style: style,
-      bounds: UK_BOUNDS,
-      fitBoundsOptions: { padding: 20 },
-      minZoom: 1,
+      center: UK_CENTER,
+      zoom: INITIAL_ZOOM,
+      minZoom: INITIAL_ZOOM,
       maxZoom: 18,
       attributionControl: false
     });
@@ -93,6 +149,8 @@
     map.keyboard.enable();
 
     map.on('load', async () => {
+      recolorRoads(map);
+
       map.addSource(markerId, {
         type: 'geojson',
         data: 'data/moments.json'
@@ -107,52 +165,7 @@
       }
 
       try {
-        const gbData = await fetch('/data/gb-outline.json').then((r) =>
-          r.json()
-        );
-        const holes = [];
-        const geometries =
-          gbData.geometries ?? gbData.features?.map((f) => f.geometry) ?? [];
-        for (const geom of geometries) {
-          if (geom.type === 'Polygon') {
-            holes.push(geom.coordinates[0]);
-          } else if (geom.type === 'MultiPolygon') {
-            for (const poly of geom.coordinates) {
-              holes.push(poly[0]);
-            }
-          }
-        }
-        map.addSource('mask', {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            geometry: {
-              type: 'Polygon',
-              coordinates: [
-                [
-                  [-180, -90],
-                  [180, -90],
-                  [180, 90],
-                  [-180, 90],
-                  [-180, -90]
-                ],
-                ...holes
-              ]
-            }
-          }
-        });
-        const firstSymbolLayer = map
-          .getStyle()
-          .layers.find((l) => l.type === 'symbol');
-        map.addLayer(
-          {
-            id: 'mask-layer',
-            type: 'fill',
-            source: 'mask',
-            paint: { 'fill-color': '#c8d8e8', 'fill-opacity': 1 }
-          },
-          firstSymbolLayer?.id
-        );
+        // Mask disabled: relying on the OS style's own land/sea rendering instead.
       } catch (error) {
         console.error('Error loading GB mask:', error);
       }
@@ -256,6 +269,10 @@
         }
 
         const { lng, lat } = e.lngLat;
+        if (!isWithinBritishIsles(lng, lat)) {
+          alert('Pins can only be added within the British Isles.');
+          return;
+        }
         activeMarkerCoords.set({ lng, lat });
       });
     });
