@@ -157,7 +157,7 @@
       });
 
       try {
-        await loadImageAndAddToMap(map, markerImage, 'marker');
+        await loadImageAndAddToMap(map, markerImage, 'moment-marker');
         await loadImageAndAddToMap(map, markerHoveredImage, 'marker-hovered');
         await loadImageAndAddToMap(map, addMarkerImage, 'add-marker');
       } catch (error) {
@@ -170,7 +170,7 @@
         console.error('Error loading GB mask:', error);
       }
 
-      addPinLayer(map, markerLayerId, markerId, 'marker');
+      addPinLayer(map, markerLayerId, markerId, 'moment-marker');
       addPinLayer(map, markerHoveredLayerId, markerId, 'marker-hovered', {
         'icon-opacity': [
           'case',
