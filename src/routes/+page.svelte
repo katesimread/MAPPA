@@ -47,8 +47,8 @@
   <aside class="info-panel">
     <h1>MAPPA</h1>
     <p>
-      MAPPA is a project that helps refugees and asylum seekers find services
-      in the UK.
+      MAPPA is a project that helps refugees and asylum seekers find services in
+      the UK.
     </p>
     <p>
       You can use the interactive map to search for charities and other

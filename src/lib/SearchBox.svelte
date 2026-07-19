@@ -59,9 +59,7 @@
   }
 
   async function searchGoogle() {
-    const res = await fetch(
-      `/places-search?q=${encodeURIComponent(query)}`
-    );
+    const res = await fetch(`/places-search?q=${encodeURIComponent(query)}`);
     const data = await res.json();
     return data.results ?? [];
   }

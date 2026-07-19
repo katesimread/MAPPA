@@ -114,8 +114,8 @@
             <span>1</span>Click the map to place your pin.
           </div>
           <div class="partial_div-numbered">
-            <span>2</span>Write a little about what it is that they do. Select
-            a category and share the website link if you can.
+            <span>2</span>Write a little about what it is that they do. Select a
+            category and share the website link if you can.
           </div>
           <div class="partial_div-numbered">
             <span>3</span>Click the Add button.
