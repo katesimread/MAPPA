@@ -13,10 +13,58 @@
     return { lng, lat };
   }
 
+  // Keep in sync with BRITISH_ISLES_BOUNDS in src/lib/Map.svelte
+  const NOMINATIM_VIEWBOX = '-10.6,60.9,1.8,49.9';
+
   let query = '';
   let results = [];
   let error = '';
   let loading = false;
+
+  async function searchOS() {
+    const res = await fetch(
+      `https://api.os.uk/search/names/v1/find?query=${encodeURIComponent(query)}&key=${PUBLIC_OS_API_KEY}`
+    );
+    const data = await res.json();
+    return (data.results ?? []).map((result) => {
+      const entry = result.GAZETTEER_ENTRY;
+      const { lng, lat } = bngToWgs84(entry.GEOMETRY_X, entry.GEOMETRY_Y);
+      return {
+        label: entry.NAME1,
+        detail: entry.COUNTY_UNITARY ?? '',
+        lng,
+        lat,
+        type: entry.LOCAL_TYPE,
+        source: 'os'
+      };
+    });
+  }
+
+  async function searchNominatim() {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=gb&bounded=1&viewbox=${NOMINATIM_VIEWBOX}&q=${encodeURIComponent(query)}`
+    );
+    const data = await res.json();
+    return data.map((result) => {
+      const parts = result.display_name.split(',').map((part) => part.trim());
+      return {
+        label: parts[0],
+        detail: parts.slice(1, 3).join(', '),
+        lng: parseFloat(result.lon),
+        lat: parseFloat(result.lat),
+        type: result.type,
+        source: 'osm'
+      };
+    });
+  }
+
+  async function searchGoogle() {
+    const res = await fetch(
+      `/places-search?q=${encodeURIComponent(query)}`
+    );
+    const data = await res.json();
+    return data.results ?? [];
+  }
 
   async function search() {
     if (!query.trim()) return;
@@ -25,11 +73,16 @@
     results = [];
 
     try {
-      const res = await fetch(
-        `https://api.os.uk/search/names/v1/find?query=${encodeURIComponent(query)}&key=${PUBLIC_OS_API_KEY}`
-      );
-      const data = await res.json();
-      results = data.results ?? [];
+      const [osResults, osmResults, googleResults] = await Promise.all([
+        searchOS().catch(() => []),
+        searchNominatim().catch(() => []),
+        searchGoogle().catch(() => [])
+      ]);
+      results = [
+        ...googleResults.slice(0, 5),
+        ...osResults.slice(0, 5),
+        ...osmResults.slice(0, 5)
+      ];
       if (results.length === 0) error = 'No results found.';
     } catch (e) {
       error = 'Search failed. Please try again.';
@@ -39,11 +92,15 @@
   }
 
   function select(result) {
-    const entry = result.GAZETTEER_ENTRY;
-    const { lng, lat } = bngToWgs84(entry.GEOMETRY_X, entry.GEOMETRY_Y);
-    searchLocation.set({ lng, lat });
+    searchLocation.set({
+      lng: result.lng,
+      lat: result.lat,
+      type: result.type,
+      source: result.source,
+      label: result.label
+    });
     results = [];
-    query = entry.NAME1;
+    query = result.label;
   }
 
   function handleKeydown(e) {
@@ -55,7 +112,7 @@
   <div class="search-input-row">
     <input
       type="text"
-      placeholder="Search for a town or place..."
+      placeholder="Search for a place, street, or shop..."
       bind:value={query}
       on:keydown={handleKeydown}
     />
@@ -70,14 +127,12 @@
 
   {#if results.length > 0}
     <ul class="search-results">
-      {#each results.slice(0, 5) as result}
+      {#each results as result}
         <li>
           <button on:click={() => select(result)}>
-            {result.GAZETTEER_ENTRY.NAME1}
-            {#if result.GAZETTEER_ENTRY.COUNTY_UNITARY}
-              <span class="result-detail"
-                >{result.GAZETTEER_ENTRY.COUNTY_UNITARY}</span
-              >
+            {result.label}
+            {#if result.detail}
+              <span class="result-detail">{result.detail}</span>
             {/if}
           </button>
         </li>

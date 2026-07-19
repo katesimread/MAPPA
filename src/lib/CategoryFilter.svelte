@@ -3,8 +3,12 @@
 
   const options = [
     { value: null, label: 'All' },
-    { value: 'food', label: 'Food' },
-    { value: 'fun', label: 'Fun' }
+    { value: 'housing', label: 'Housing' },
+    { value: 'english-lessons', label: 'English Lessons' },
+    { value: 'supplies', label: 'Supplies' },
+    { value: 'skills', label: 'Skills' },
+    { value: 'legal-support', label: 'Legal Support' },
+    { value: 'other', label: 'Other' }
   ];
 
   function select(value) {

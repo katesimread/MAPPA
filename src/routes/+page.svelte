@@ -13,7 +13,7 @@
 </script>
 
 <svelte:head>
-  <title>WIP Final Project</title>
+  <title>MAPPA</title>
   <meta
     name="description"
     content="Queering the Map is a community generated counter-mapping platform for digitally archiving LGBTQ2IA+ experience in relation to physical space."
@@ -45,8 +45,25 @@
 
 <div class="layout">
   <aside class="info-panel">
-    <h1>Project Title</h1>
-    <p>Write about what you've built here...</p>
+    <h1>MAPPA</h1>
+    <p>
+      MAPPA is a project that helps refugees and asylum seekers find services
+      in the UK.
+    </p>
+    <p>
+      You can use the interactive map to search for charities and other
+      organisations in your area, as well as to leave suggestions for other
+      people.
+    </p>
+    <p>
+      You can use the filter buttons below to look for help with housing,
+      English lessons, supplies (clothes, toiletries etc.), skills, legal
+      support, or anything else.
+    </p>
+    <p>
+      The aim is to create a community map where people can share knowledge to
+      make accessing help easier.
+    </p>
   </aside>
 
   <div class="map-panel">

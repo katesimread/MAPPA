@@ -106,13 +106,16 @@
   <div class="overlay__outer">
     <div class="overlay__content">
       <section>
-        <div class="overlay__section-title">Add Your Story</div>
+        <div class="overlay__section-title">
+          Do you have a service that you would like to share?
+        </div>
         <div class="overlay__section-text">
           <div class="partial_div-numbered">
-            <span>1</span>Click the location of your story on the map.
+            <span>1</span>Click the map to place your pin.
           </div>
           <div class="partial_div-numbered">
-            <span>2</span>Share your story in the the text box below.
+            <span>2</span>Write a little about what it is that they do. Select
+            a category and share the website link if you can.
           </div>
           <div class="partial_div-numbered">
             <span>3</span>Click the Add button.
@@ -126,8 +129,11 @@
 
             <select bind:value={momentCategory} class="category-select">
               <option value="" disabled>Select a category</option>
-              <option value="food">Food</option>
-              <option value="fun">Fun</option>
+              <option value="housing">Housing</option>
+              <option value="english-lessons">English Lessons</option>
+              <option value="supplies">Supplies</option>
+              <option value="skills">Skills</option>
+              <option value="legal-support">Legal Support</option>
               <option value="other">Other</option>
             </select>
 

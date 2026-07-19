@@ -43,8 +43,16 @@
   const markerHoveredLayerId = 'moments-hovered-layer';
   const activeMarkerSourceId = 'active-marker-source';
   const activeMarkerLayerId = 'active-marker-layer';
+  const searchMarkerSourceId = 'search-marker-source';
+  const searchMarkerDotLayerId = 'search-marker-dot-layer';
+  const searchMarkerLabelLayerId = 'search-marker-label-layer';
 
   const activeMarkerGeoJSON = {
+    type: 'FeatureCollection',
+    features: []
+  };
+
+  const searchMarkerGeoJSON = {
     type: 'FeatureCollection',
     features: []
   };
@@ -186,6 +194,41 @@
       });
       addPinLayer(map, activeMarkerLayerId, activeMarkerSourceId, 'add-marker');
 
+      map.addSource(searchMarkerSourceId, {
+        type: 'geojson',
+        data: searchMarkerGeoJSON
+      });
+      map.addLayer({
+        id: searchMarkerDotLayerId,
+        type: 'circle',
+        source: searchMarkerSourceId,
+        paint: {
+          'circle-radius': 6,
+          'circle-color': '#422232',
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+      map.addLayer({
+        id: searchMarkerLabelLayerId,
+        type: 'symbol',
+        source: searchMarkerSourceId,
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['Noto Sans Bold'],
+          'text-size': 14,
+          'text-anchor': 'top',
+          'text-offset': [0, 0.7],
+          'text-allow-overlap': true,
+          'text-optional': true
+        },
+        paint: {
+          'text-color': '#422232',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 1.5
+        }
+      });
+
       map.on('click', markerLayerId, function (e) {
         isMomentLayerClicked = true;
         if (!e.features || e.features.length === 0) {
@@ -280,10 +323,28 @@
 
   $: {
     if ($searchLocation && map) {
+      const zoom =
+        $searchLocation.type === 'Postcode'
+          ? 16
+          : $searchLocation.source === 'osm'
+            ? 17
+            : 12;
       map.flyTo({
         center: [$searchLocation.lng, $searchLocation.lat],
-        zoom: 12
+        zoom
       });
+
+      searchMarkerGeoJSON.features = [
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [$searchLocation.lng, $searchLocation.lat]
+          },
+          properties: { label: $searchLocation.label ?? '' }
+        }
+      ];
+      map.getSource(searchMarkerSourceId)?.setData(searchMarkerGeoJSON);
     }
   }
 

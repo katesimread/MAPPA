@@ -19,7 +19,14 @@ function generateRandomDescription(id) {
   return `Description ${id} ${words.join(' ')}`;
 }
 
-const CATEGORIES = ['food', 'fun', 'other'];
+const CATEGORIES = [
+  'housing',
+  'english-lessons',
+  'supplies',
+  'skills',
+  'legal-support',
+  'other'
+];
 
 function generateRandomMoment(id) {
   const longitude = getRandomCoordinate(-180, 180);
