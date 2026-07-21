@@ -1,6 +1,6 @@
 <script>
   import { PUBLIC_OS_API_KEY } from '$env/static/public';
-  import { searchLocation } from '../stores';
+  import { searchLocation, translatedToArabic } from '../stores';
   import proj4 from 'proj4';
 
   proj4.defs(
@@ -110,12 +110,15 @@
   <div class="search-input-row">
     <input
       type="text"
-      placeholder="Search for a place, street, or shop..."
+      placeholder={$translatedToArabic
+        ? 'ابحث عن مكان أو شارع أو متجر'
+        : 'Search for a place, street, or shop...'}
+      dir={$translatedToArabic ? 'rtl' : 'ltr'}
       bind:value={query}
       on:keydown={handleKeydown}
     />
     <button on:click={search} disabled={loading}>
-      {loading ? '...' : 'Search'}
+      {loading ? '...' : $translatedToArabic ? 'بحث' : 'Search'}
     </button>
   </div>
 
@@ -141,11 +144,8 @@
 
 <style>
   .search-box {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    z-index: 10;
-    width: 300px;
+    position: relative;
+    width: 100%;
   }
 
   .search-input-row {
@@ -179,6 +179,11 @@
   }
 
   .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 10;
     list-style: none;
     margin: 4px 0 0;
     padding: 0;

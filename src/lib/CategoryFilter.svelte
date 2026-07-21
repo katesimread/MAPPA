@@ -1,28 +1,21 @@
 <script>
-  import { categoryFilter } from '../stores';
+  import { categoryFilter, translatedToArabic } from '../stores';
+  import { categories } from './categories.js';
 
-  const options = [
-    { value: null, label: 'All' },
-    { value: 'housing', label: 'Housing' },
-    { value: 'english-lessons', label: 'English Lessons' },
-    { value: 'supplies', label: 'Supplies' },
-    { value: 'skills', label: 'Skills' },
-    { value: 'legal-support', label: 'Legal Support' },
-    { value: 'other', label: 'Other' }
-  ];
+  const options = [{ value: null, en: 'All', ar: 'الكل' }, ...categories];
 
   function select(value) {
     categoryFilter.set(value);
   }
 </script>
 
-<div class="category-filter">
+<div class="category-filter" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
   {#each options as option}
     <button
       class:active={$categoryFilter === option.value}
       on:click={() => select(option.value)}
     >
-      {option.label}
+      {$translatedToArabic ? option.ar : option.en}
     </button>
   {/each}
 </div>

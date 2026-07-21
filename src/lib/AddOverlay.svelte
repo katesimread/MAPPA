@@ -2,7 +2,8 @@
   import {
     addOverlayVisible,
     infoOverlayVisible,
-    infoOverlayActiveTab
+    infoOverlayActiveTab,
+    translatedToArabic
   } from '../stores';
   import ActionButton from './ActionButton.svelte';
   import CloseButton from './CloseButton.svelte';
@@ -10,6 +11,7 @@
   import { turnstile } from '@svelte-put/cloudflare-turnstile';
   import { PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY } from '$env/static/public';
   import { SvelteToast, toast } from '@zerodevx/svelte-toast';
+  import { categories } from './categories.js';
 
   let momentDescription = '';
   let momentCategory = '';
@@ -104,22 +106,40 @@
     >
   </div>
   <div class="overlay__outer">
-    <div class="overlay__content">
+    <div class="overlay__content" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
       <section>
         <div class="overlay__section-title">
-          Do you have a service that you would like to share?
+          {#if $translatedToArabic}
+            هل لديك خدمة تريد مشاركتها؟
+          {:else}
+            Do you have a service that you would like to share?
+          {/if}
         </div>
         <div class="overlay__section-text">
-          <div class="partial_div-numbered">
-            <span>1</span>Click the map to place your pin.
-          </div>
-          <div class="partial_div-numbered">
-            <span>2</span>Write a little about what it is that they do. Select a
-            category and share the website link if you can.
-          </div>
-          <div class="partial_div-numbered">
-            <span>3</span>Click the Add button.
-          </div>
+          {#if $translatedToArabic}
+            <div class="partial_div-numbered">
+              <span>1</span>اضغط على الخريطة لتحديد موقعك.
+            </div>
+            <div class="partial_div-numbered">
+              <span>2</span>اكتب اسم الجمعية أو المؤسسة، مع نبذة موجزة عن
+              الخدمات التي تقدمها. اختر الفئة المناسبة، وأضف رابط الموقع
+              الإلكتروني إن توفر.
+            </div>
+            <div class="partial_div-numbered">
+              <span>3</span>اضغط على زر "إضافة".
+            </div>
+          {:else}
+            <div class="partial_div-numbered">
+              <span>1</span>Click the map to place your pin.
+            </div>
+            <div class="partial_div-numbered">
+              <span>2</span>Write a little about what it is that they do. Select
+              a category and share the website link if you can.
+            </div>
+            <div class="partial_div-numbered">
+              <span>3</span>Click the Add button.
+            </div>
+          {/if}
           <form>
             <textarea
               bind:value={momentDescription}
@@ -128,20 +148,25 @@
             ></textarea>
 
             <select bind:value={momentCategory} class="category-select">
-              <option value="" disabled>Select a category</option>
-              <option value="housing">Housing</option>
-              <option value="english-lessons">English Lessons</option>
-              <option value="supplies">Supplies</option>
-              <option value="skills">Skills</option>
-              <option value="legal-support">Legal Support</option>
-              <option value="other">Other</option>
+              <option value="" disabled
+                >{$translatedToArabic
+                  ? 'اختر فئة'
+                  : 'Select a category'}</option
+              >
+              {#each categories as category}
+                <option value={category.value}
+                  >{$translatedToArabic ? category.ar : category.en}</option
+                >
+              {/each}
             </select>
 
             <input
               type="text"
               bind:value={momentLink}
               class="link-input"
-              placeholder="Share a website link (optional)"
+              placeholder={$translatedToArabic
+                ? 'أضف رابط الموقع الإلكتروني (اختياري)'
+                : 'Share a website link (optional)'}
             />
 
             {#if requestCaptcha}
@@ -165,23 +190,39 @@
 						</div> -->
 
             <div class="recaptcha-text">
-              By submitting I agree to the <a
-                href="/"
-                on:click|preventDefault={() => openInfoOverlay(6)}
-                target="_blank"
-                rel="noopener">Terms of Use</a
-              >
-              and
-              <a
-                href="/"
-                on:click|preventDefault={() => openInfoOverlay(7)}
-                target="_blank"
-                rel="noopener">Privacy Policy</a
-              >.
+              {#if $translatedToArabic}
+                بإرسالي هذه المعلومات، أوافق على <a
+                  href="/"
+                  on:click|preventDefault={() => openInfoOverlay(6)}
+                  target="_blank"
+                  rel="noopener">شروط الاستخدام</a
+                >
+                و<a
+                  href="/"
+                  on:click|preventDefault={() => openInfoOverlay(7)}
+                  target="_blank"
+                  rel="noopener">سياسة الخصوصية</a
+                >.
+              {:else}
+                By submitting I agree to the <a
+                  href="/"
+                  on:click|preventDefault={() => openInfoOverlay(6)}
+                  target="_blank"
+                  rel="noopener">Terms of Use</a
+                >
+                and
+                <a
+                  href="/"
+                  on:click|preventDefault={() => openInfoOverlay(7)}
+                  target="_blank"
+                  rel="noopener">Privacy Policy</a
+                >.
+              {/if}
             </div>
             <ActionButton
               functionOnClick={() => (requestCaptcha = true)}
-              isDisabled={isAddButtonDisabled}>Add</ActionButton
+              isDisabled={isAddButtonDisabled}
+              >{$translatedToArabic ? 'إضافة' : 'Add'}</ActionButton
             >
           </form>
         </div>

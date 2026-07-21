@@ -6,7 +6,11 @@
   import InfoOverlay from '$lib/InfoOverlay.svelte';
   import Map from '$lib/Map.svelte';
   import NavBar from '$lib/NavBar.svelte';
-  import { addOverlayVisible, infoOverlayVisible } from '../stores';
+  import {
+    addOverlayVisible,
+    infoOverlayVisible,
+    translatedToArabic
+  } from '../stores';
   import qtm_sharing_image from '$lib/assets/qtm_sharing_image.jpg';
   import SearchBox from '$lib/SearchBox.svelte';
   import CategoryFilter from '$lib/CategoryFilter.svelte';
@@ -44,26 +48,52 @@
 </svelte:head>
 
 <div class="layout">
-  <aside class="info-panel">
-    <h1>MAPPA</h1>
-    <p>
-      MAPPA is a project that helps refugees and asylum seekers find services in
-      the UK.
-    </p>
-    <p>
-      You can use the interactive map to search for charities and other
-      organisations in your area, as well as to leave suggestions for other
-      people.
-    </p>
-    <p>
-      You can use the filter buttons below to look for help with housing,
-      English lessons, supplies (clothes, toiletries etc.), skills, legal
-      support, or anything else.
-    </p>
-    <p>
-      The aim is to create a community map where people can share knowledge to
-      make accessing help easier.
-    </p>
+  <aside class="info-panel" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
+    <div class="info-content">
+      <h1>MAPPA</h1>
+      {#if $translatedToArabic}
+        <p>
+          يعدّ MAPPA مشروعًا يساعد اللاجئين وطالبي اللجوء على إيجاد الخدمات
+          المتوفرة في المملكة المتحدة.
+        </p>
+        <p>
+          يمكنك استخدام الخريطة التفاعلية للبحث عن الجمعيات الخيرية والمؤسسات
+          الأخرى في منطقتك، وكذلك لإضافة اقتراحات يستفيد منها الآخرون.
+        </p>
+        <p>
+          يمكنك أيضًا استخدام أزرار التصفية في الأسفل للبحث عن مساعدة في السكن،
+          أو دروس اللغة الإنجليزية، أو المستلزمات (كالملابس ومستلزمات النظافة
+          وغيرها)، أو تطوير المهارات، أو الدعم القانوني، أو أي نوع آخر من
+          المساعدة.
+        </p>
+        <p>
+          الهدف هو إنشاء خريطة مجتمعية يتشارك فيها الناس المعرفة، لتسهيل حصول
+          النازحين على المساعدة.
+        </p>
+      {:else}
+        <p>
+          MAPPA is a project that helps refugees and asylum seekers find
+          services in the UK.
+        </p>
+        <p>
+          You can use the interactive map to search for charities and other
+          organisations in your area, as well as to leave suggestions for other
+          people.
+        </p>
+        <p>
+          You can use the filter buttons below to look for help with housing,
+          English lessons, supplies (clothes, toiletries etc.), skills, legal
+          support, or anything else.
+        </p>
+        <p>
+          The aim is to create a community map where people can share knowledge
+          to make accessing help easier.
+        </p>
+      {/if}
+    </div>
+    <div class="info-search">
+      <SearchBox></SearchBox>
+    </div>
   </aside>
 
   <div class="map-panel">
@@ -75,7 +105,6 @@
       <AddOverlay></AddOverlay>
     {/if}
     <Map></Map>
-    <SearchBox></SearchBox>
     <CategoryFilter></CategoryFilter>
   </div>
 </div>
@@ -96,15 +125,25 @@
     width: 33.333%;
     height: 100%;
     overflow-y: auto;
-    padding: 2rem;
+    padding: 2rem 2rem 16px 2rem;
     box-sizing: border-box;
     background: #fff;
     border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
   }
 
   .info-panel h1 {
     margin-top: 0;
     font-size: 1.4rem;
+  }
+
+  .info-content {
+    flex: 1;
+  }
+
+  .info-search {
+    padding-top: 1rem;
   }
 
   .map-panel {

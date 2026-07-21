@@ -2,6 +2,7 @@ import { writable } from 'svelte/store';
 
 export const infoOverlayVisible = writable(false);
 export const addOverlayVisible = writable(false);
+export const translatedToArabic = writable(false);
 
 export const infoOverlayActiveTab = (active_tab) => {
   if (typeof active_tab === 'number') {
