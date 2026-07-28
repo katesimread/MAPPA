@@ -92,11 +92,7 @@
           to make accessing help easier.
         </p>
       {/if}
-      <img
-        class="category-icons"
-        src={categoryIcons}
-        alt=""
-      />
+      <img class="category-icons" src={categoryIcons} alt="" />
     </div>
     <div class="info-search">
       <SearchBox></SearchBox>
