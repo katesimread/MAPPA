@@ -60,7 +60,7 @@
 
   /* Specifically for the translate button  */
   .overlay-trigger.overlay-trigger--translate {
-    right: 95px;
+    left: 9px;
     top: 9px;
     font-size: 0.6em;
     background: #fff;

@@ -12,6 +12,8 @@
     translatedToArabic
   } from '../stores';
   import qtm_sharing_image from '$lib/assets/qtm_sharing_image.jpg';
+  import logo from '$lib/assets/logo.png';
+  import categoryIcons from '$lib/assets/category-icons.png';
   import SearchBox from '$lib/SearchBox.svelte';
   import CategoryFilter from '$lib/CategoryFilter.svelte';
 </script>
@@ -50,7 +52,7 @@
 <div class="layout">
   <aside class="info-panel" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
     <div class="info-content">
-      <h1>MAPPA</h1>
+      <img class="logo" src={logo} alt="MAPPA" />
       {#if $translatedToArabic}
         <p>
           يعدّ MAPPA مشروعًا يساعد اللاجئين وطالبي اللجوء على إيجاد الخدمات
@@ -90,6 +92,11 @@
           to make accessing help easier.
         </p>
       {/if}
+      <img
+        class="category-icons"
+        src={categoryIcons}
+        alt=""
+      />
     </div>
     <div class="info-search">
       <SearchBox></SearchBox>
@@ -133,13 +140,22 @@
     flex-direction: column;
   }
 
-  .info-panel h1 {
-    margin-top: 0;
-    font-size: 1.4rem;
+  .info-panel .logo {
+    display: block;
+    margin: 0 auto;
+    height: 8rem;
+    width: auto;
   }
 
   .info-content {
     flex: 1;
+  }
+
+  .category-icons {
+    display: block;
+    margin: 1rem auto 0;
+    max-width: 100%;
+    height: auto;
   }
 
   .info-search {

@@ -92,15 +92,6 @@
 
 <aside class="overlay overlay--add">
   <div class="action-button-container">
-    <div>
-      <div class="bordered"></div>
-      <div class="bordered"></div>
-    </div>
-    <div>
-      <div class="bordered" style="border-right: 0px;"></div>
-      <div class="bordered" style="border-right: 0px;"></div>
-    </div>
-
     <CloseButton functionOnClick={closeAddOverlay} position="right"
       >close add overlay</CloseButton
     >
@@ -253,7 +244,7 @@
     position: fixed;
     z-index: var(--overlay-z-index);
     top: 0;
-    background-color: var(--color-pink);
+    background-color: #fff;
     overflow-x: hidden;
   }
 
@@ -264,7 +255,7 @@
 
   .overlay__section-title {
     text-decoration: none;
-    font-size: 15px;
+    font-size: 19px;
     color: var(--color-dark);
     display: block;
     font-weight: 500;
@@ -385,7 +376,7 @@
     width: 100%;
     font-size: 12pt;
     height: 12em;
-    background-color: #f4b9d6;
+    background-color: #fff;
     border: 1.01px solid var(--color-dark);
   }
 
@@ -400,7 +391,7 @@
     padding: 0.5em;
     font-family: 'Apfel Grotezk', sans-serif;
     font-size: 12pt;
-    background-color: #f4b9d6;
+    background-color: #fff;
     border: 1.01px solid var(--color-dark);
     box-sizing: border-box;
     cursor: pointer;
@@ -412,26 +403,13 @@
     padding: 0.5em;
     font-family: 'Apfel Grotezk', sans-serif;
     font-size: 12pt;
-    background-color: #f4b9d6;
+    background-color: #fff;
     border: 1.01px solid var(--color-dark);
     box-sizing: border-box;
   }
 
   .action-button-container {
     right: 0;
-  }
-  .action-button-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-  }
-  .action-button-container > div {
-    width: 50%;
-  }
-  .action-button-container .bordered {
-    border-right: 1.01px solid var(--color-dark);
-    border-bottom: 1.01px solid var(--color-dark);
-    height: 21px;
   }
   .overlay--add textarea {
     box-sizing: border-box !important;

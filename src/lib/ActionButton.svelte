@@ -15,7 +15,7 @@
   .button {
     display: inline-block;
     border: 1.01px solid var(--color-dark);
-    background: var(--color-pink);
+    background: #fff;
     color: var(--color-dark);
     cursor: pointer;
     padding: 10px 0px;

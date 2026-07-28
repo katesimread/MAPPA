@@ -77,6 +77,20 @@
     }
   }
 
+  const ICON_SIZE_BY_ZOOM = [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    4.75,
+    0.5,
+    10,
+    0.45,
+    14,
+    1,
+    18,
+    2.2
+  ];
+
   function addPinLayer(map, layerId, sourceId, iconImage, paint = {}) {
     map.addLayer({
       id: layerId,
@@ -85,51 +99,117 @@
       layout: {
         'icon-allow-overlap': true,
         'icon-image': iconImage,
-        'icon-size': 0.45,
+        'icon-size': ICON_SIZE_BY_ZOOM,
         'icon-anchor': 'bottom'
       },
       paint: paint
     });
   }
 
-  const ROAD_COLORS = {
-    Motorway: { casing: '#99004d', fill: '#ff00ff' },
-    'Guided Busway': { casing: '#99004d', fill: '#ff00ff' },
-    Primary: { casing: '#b30058', fill: '#e8629c' },
-    'A Road': { casing: '#c71f6b', fill: '#f4b9d6' },
-    'B Road': { casing: '#d1487f', fill: '#f7cbdd' },
-    Restricted: { casing: '#d1487f', fill: '#f7cbdd' },
-    Minor: { casing: '#db6f96', fill: '#fbdce9' },
-    Local: { casing: '#e494ac', fill: '#fdeef4' }
-  };
-  const ROAD_AREA_FILL = '#fdeef4';
-  const ROAD_LABEL_COLOR = '#422232';
+  const BACKGROUND_COLOR = '#baa98c';
+  const WATER_COLOR = '#90a5ba';
+  const ROAD_COLOR = '#9e4e2c';
+  const ROAD_CASING_COLOR = '#67331d';
+  const FIELDS_COLOR = '#827b5c';
+  const BUILDING_COLOR = '#663029';
+  const BUILDING_OUTLINE_COLOR = '#47221d';
+  const RESIDENTIAL_COLOR = '#d7af46';
+  const RAILWAY_COLOR = '#6a3d29';
+  const BOUNDARY_COLOR = '#b97c73';
+
+  function recolorBoundaries(map) {
+    for (const layerId of ['boundary_2', 'boundary_3', 'boundary_disputed']) {
+      if (map.getLayer(layerId)) {
+        map.setPaintProperty(layerId, 'line-color', BOUNDARY_COLOR);
+      }
+    }
+  }
+
+  function recolorBuildings(map) {
+    if (map.getLayer('building')) {
+      map.setPaintProperty('building', 'fill-color', BUILDING_COLOR);
+      map.setPaintProperty(
+        'building',
+        'fill-outline-color',
+        BUILDING_OUTLINE_COLOR
+      );
+    }
+  }
+
+  function recolorResidential(map) {
+    if (map.getLayer('landuse_residential')) {
+      map.setPaintProperty(
+        'landuse_residential',
+        'fill-color',
+        RESIDENTIAL_COLOR
+      );
+    }
+  }
+
+  function addFieldsLayer(map) {
+    if (map.getLayer('landuse_farmland')) {
+      return;
+    }
+    map.addLayer(
+      {
+        id: 'landuse_farmland',
+        type: 'fill',
+        source: 'openmaptiles',
+        'source-layer': 'landuse',
+        filter: ['==', ['get', 'class'], 'farmland'],
+        paint: { 'fill-color': FIELDS_COLOR }
+      },
+      'landuse_residential'
+    );
+  }
+
+  function recolorBackground(map) {
+    if (map.getLayer('background')) {
+      map.setPaintProperty('background', 'background-color', BACKGROUND_COLOR);
+    }
+  }
+
+  function recolorWoodland(map) {
+    if (map.getLayer('landcover_wood')) {
+      map.setPaintProperty('landcover_wood', 'fill-color', FIELDS_COLOR);
+    }
+    if (map.getLayer('park')) {
+      map.setPaintProperty('park', 'fill-color', FIELDS_COLOR);
+    }
+  }
+
+  function recolorWater(map) {
+    if (map.getLayer('water')) {
+      map.setPaintProperty('water', 'fill-color', WATER_COLOR);
+    }
+    if (map.getLayer('waterway')) {
+      map.setPaintProperty('waterway', 'line-color', WATER_COLOR);
+    }
+  }
 
   function recolorRoads(map) {
     for (const layer of map.getStyle().layers) {
-      if (layer.type === 'line' && layer['source-layer'] === 'Roads') {
-        const [, roadClass, variant] =
-          layer.id.match(/^OS\/Roads\/([^,]+),.*[/_](\d)$/) ?? [];
-        const colors = ROAD_COLORS[roadClass];
-        if (colors) {
-          map.setPaintProperty(
-            layer.id,
-            'line-color',
-            variant === '1' ? colors.casing : colors.fill
-          );
-        }
-      } else if (
-        layer.type === 'symbol' &&
-        (layer['source-layer'] === 'Roads/label' ||
-          (layer['source-layer'] === 'CartographicText' &&
-            layer.id.includes('Roads')))
+      if (layer.type !== 'line' || layer['source-layer'] !== 'transportation') {
+        continue;
+      }
+      if (layer.id.includes('railway') || layer.id === 'road_pier') {
+        continue;
+      }
+      const color = layer.id.includes('casing')
+        ? ROAD_CASING_COLOR
+        : ROAD_COLOR;
+      map.setPaintProperty(layer.id, 'line-color', color);
+    }
+  }
+
+  function recolorRailways(map) {
+    for (const layer of map.getStyle().layers) {
+      if (
+        layer.type === 'line' &&
+        layer['source-layer'] === 'transportation' &&
+        layer.id.includes('railway')
       ) {
-        map.setPaintProperty(layer.id, 'text-color', ROAD_LABEL_COLOR);
-      } else if (
-        layer.type === 'fill' &&
-        (layer.id.includes('Road') || layer.id.includes('Roadside'))
-      ) {
-        map.setPaintProperty(layer.id, 'fill-color', ROAD_AREA_FILL);
+        map.setPaintProperty(layer.id, 'line-color', RAILWAY_COLOR);
       }
     }
   }
@@ -157,7 +237,15 @@
     map.keyboard.enable();
 
     map.on('load', async () => {
+      recolorBackground(map);
       recolorRoads(map);
+      recolorRailways(map);
+      recolorWater(map);
+      recolorWoodland(map);
+      recolorBoundaries(map);
+      recolorBuildings(map);
+      recolorResidential(map);
+      addFieldsLayer(map);
 
       map.addSource(markerId, {
         type: 'geojson',
