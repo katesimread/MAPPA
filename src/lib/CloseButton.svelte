@@ -15,13 +15,7 @@
       xmlns="http://www.w3.org/2000/svg"
       fill="#fff"
       viewBox="0 0 45 45"
-      ><rect
-        x="0.5"
-        y="0.5"
-        width="44"
-        height="44"
-        fill="#fff"
-        stroke="black"
+      ><rect x="0.5" y="0.5" width="44" height="44" fill="#fff" stroke="black"
       ></rect><line
         x1="15.3536"
         y1="14.6464"
