@@ -13,7 +13,6 @@
   } from '../stores';
   import qtm_sharing_image from '$lib/assets/qtm_sharing_image.jpg';
   import logo from '$lib/assets/logo.png';
-  import categoryIcons from '$lib/assets/category-icons.png';
   import SearchBox from '$lib/SearchBox.svelte';
   import CategoryFilter from '$lib/CategoryFilter.svelte';
 </script>
@@ -92,7 +91,7 @@
           to make accessing help easier.
         </p>
       {/if}
-      <img class="category-icons" src={categoryIcons} alt="" />
+      <CategoryFilter></CategoryFilter>
     </div>
     <div class="info-search">
       <SearchBox></SearchBox>
@@ -108,7 +107,6 @@
       <AddOverlay></AddOverlay>
     {/if}
     <Map></Map>
-    <CategoryFilter></CategoryFilter>
   </div>
 </div>
 
@@ -130,7 +128,7 @@
     overflow-y: auto;
     padding: 2rem 2rem 16px 2rem;
     box-sizing: border-box;
-    background: #fff;
+    background: #f0f0f0;
     border-right: 1px solid #e0e0e0;
     display: flex;
     flex-direction: column;
@@ -145,13 +143,6 @@
 
   .info-content {
     flex: 1;
-  }
-
-  .category-icons {
-    display: block;
-    margin: 1rem auto 0;
-    max-width: 100%;
-    height: auto;
   }
 
   .info-search {

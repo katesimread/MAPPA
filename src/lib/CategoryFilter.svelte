@@ -1,44 +1,83 @@
 <script>
   import { categoryFilter, translatedToArabic } from '../stores';
   import { categories } from './categories.js';
+  import suppliesIcon from '$lib/assets/category-supplies.png';
+  import housingIcon from '$lib/assets/category-housing.png';
+  import englishLessonsIcon from '$lib/assets/category-english-lessons.png';
+  import skillsIcon from '$lib/assets/category-skills.png';
+  import legalSupportIcon from '$lib/assets/category-legal-support.png';
+  import otherIcon from '$lib/assets/category-other.png';
 
-  const options = [{ value: null, en: 'All', ar: 'الكل' }, ...categories];
+  const icons = {
+    housing: housingIcon,
+    'english-lessons': englishLessonsIcon,
+    supplies: suppliesIcon,
+    skills: skillsIcon,
+    'legal-support': legalSupportIcon
+  };
+
+  const options = [
+    ...categories.filter((category) => category.value !== 'other'),
+    { value: null, en: 'Other', ar: 'أخرى' }
+  ];
 
   function select(value) {
-    categoryFilter.set(value);
+    if (value === null) {
+      categoryFilter.set([]);
+      return;
+    }
+    categoryFilter.update((selected) =>
+      selected.includes(value)
+        ? selected.filter((v) => v !== value)
+        : [...selected, value]
+    );
   }
 </script>
 
 <div class="category-filter" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
   {#each options as option}
     <button
-      class:active={$categoryFilter === option.value}
+      class:active={option.value !== null &&
+        $categoryFilter.includes(option.value)}
       on:click={() => select(option.value)}
     >
-      {$translatedToArabic ? option.ar : option.en}
+      {#if option.value === null}
+        <img src={otherIcon} alt="" />
+      {:else if icons[option.value]}
+        <img src={icons[option.value]} alt="" />
+      {/if}
+      <span>{$translatedToArabic ? option.ar : option.en}</span>
     </button>
   {/each}
 </div>
 
 <style>
   .category-filter {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    z-index: 10;
-    display: flex;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
   }
 
   button {
-    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    padding: 10px 6px;
     background: white;
     color: #422232;
-    border: none;
+    border: 1px solid #e0e0e0;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  button img {
+    width: 100%;
+    max-width: 60px;
+    height: auto;
   }
 
   button.active {

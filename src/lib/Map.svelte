@@ -3,12 +3,17 @@
   import maplibregl from 'maplibre-gl';
   const { AttributionControl, Map, NavigationControl, Popup } = maplibregl;
   import 'maplibre-gl/dist/maplibre-gl.css';
-  import markerImage from '$lib/assets/marker.png';
-  import markerHoveredImage from '$lib/assets/marker-hovered.png';
   const style = 'https://tiles.openfreemap.org/styles/positron';
   import addMarkerImage from '$lib/assets/add-marker.png';
+  import housingPinImage from '$lib/assets/pin-housing.png';
+  import englishLessonsPinImage from '$lib/assets/pin-english-lessons.png';
+  import skillsPinImage from '$lib/assets/pin-skills.png';
+  import suppliesPinImage from '$lib/assets/pin-supplies.png';
+  import legalSupportPinImage from '$lib/assets/pin-legal-support.png';
+  import otherPinImage from '$lib/assets/pin-other.png';
   import {
     activeMarkerCoords,
+    addOverlayVisible,
     searchLocation,
     categoryFilter
   } from '../stores';
@@ -40,7 +45,6 @@
   const markerHeight = 39;
   const markerId = 'moments';
   const markerLayerId = 'moments-layer';
-  const markerHoveredLayerId = 'moments-hovered-layer';
   const activeMarkerSourceId = 'active-marker-source';
   const activeMarkerLayerId = 'active-marker-layer';
   const searchMarkerSourceId = 'search-marker-source';
@@ -77,21 +81,31 @@
     }
   }
 
-  const ICON_SIZE_BY_ZOOM = [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    4.75,
-    0.5,
-    10,
-    0.45,
-    14,
-    1,
-    18,
-    2.2
-  ];
+  function iconSizeByZoom(scale = 1) {
+    return [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      4.75,
+      ['*', 0.66, scale],
+      10,
+      ['*', 0.825, scale],
+      14,
+      ['*', 1.32, scale],
+      18,
+      ['*', 2.904, scale]
+    ];
+  }
 
-  function addPinLayer(map, layerId, sourceId, iconImage, paint = {}) {
+  function addPinLayer(
+    map,
+    layerId,
+    sourceId,
+    iconImage,
+    paint = {},
+    iconSize = iconSizeByZoom(),
+    iconOffset = [0, 0]
+  ) {
     map.addLayer({
       id: layerId,
       type: 'symbol',
@@ -99,23 +113,24 @@
       layout: {
         'icon-allow-overlap': true,
         'icon-image': iconImage,
-        'icon-size': ICON_SIZE_BY_ZOOM,
-        'icon-anchor': 'bottom'
+        'icon-size': iconSize,
+        'icon-anchor': 'bottom',
+        'icon-offset': iconOffset
       },
       paint: paint
     });
   }
 
-  const BACKGROUND_COLOR = '#baa98c';
-  const WATER_COLOR = '#90a5ba';
-  const ROAD_COLOR = '#9e4e2c';
-  const ROAD_CASING_COLOR = '#67331d';
-  const FIELDS_COLOR = '#827b5c';
-  const BUILDING_COLOR = '#663029';
-  const BUILDING_OUTLINE_COLOR = '#47221d';
-  const RESIDENTIAL_COLOR = '#d7af46';
-  const RAILWAY_COLOR = '#6a3d29';
-  const BOUNDARY_COLOR = '#b97c73';
+  const BACKGROUND_COLOR = '#c9b59f';
+  const WATER_COLOR = '#94a4b8';
+  const ROAD_COLOR = '#945234';
+  const ROAD_CASING_COLOR = '#603522';
+  const FIELDS_COLOR = '#817b60';
+  const BUILDING_COLOR = '#bd8f8b';
+  const BUILDING_OUTLINE_COLOR = '#553732';
+  const RESIDENTIAL_COLOR = '#ac9086';
+  const RAILWAY_COLOR = '#7e5949';
+  const BOUNDARY_COLOR = '#d5c3c0';
 
   function recolorBoundaries(map) {
     for (const layerId of ['boundary_2', 'boundary_3', 'boundary_disputed']) {
@@ -253,9 +268,29 @@
       });
 
       try {
-        await loadImageAndAddToMap(map, markerImage, 'moment-marker');
-        await loadImageAndAddToMap(map, markerHoveredImage, 'marker-hovered');
         await loadImageAndAddToMap(map, addMarkerImage, 'add-marker');
+        await loadImageAndAddToMap(
+          map,
+          housingPinImage,
+          'moment-marker-housing'
+        );
+        await loadImageAndAddToMap(
+          map,
+          englishLessonsPinImage,
+          'moment-marker-english-lessons'
+        );
+        await loadImageAndAddToMap(map, skillsPinImage, 'moment-marker-skills');
+        await loadImageAndAddToMap(
+          map,
+          suppliesPinImage,
+          'moment-marker-supplies'
+        );
+        await loadImageAndAddToMap(
+          map,
+          legalSupportPinImage,
+          'moment-marker-legal-support'
+        );
+        await loadImageAndAddToMap(map, otherPinImage, 'moment-marker-other');
       } catch (error) {
         console.error('Error loading marker images:', error);
       }
@@ -266,21 +301,43 @@
         console.error('Error loading GB mask:', error);
       }
 
-      addPinLayer(map, markerLayerId, markerId, 'moment-marker');
-      addPinLayer(map, markerHoveredLayerId, markerId, 'marker-hovered', {
-        'icon-opacity': [
-          'case',
-          ['boolean', ['feature-state', 'hover'], false],
-          1,
-          0
-        ]
-      });
+      const categoryMarkerImage = [
+        'match',
+        ['get', 'category'],
+        'housing',
+        'moment-marker-housing',
+        'english-lessons',
+        'moment-marker-english-lessons',
+        'skills',
+        'moment-marker-skills',
+        'supplies',
+        'moment-marker-supplies',
+        'legal-support',
+        'moment-marker-legal-support',
+        'moment-marker-other'
+      ];
+      addPinLayer(
+        map,
+        markerLayerId,
+        markerId,
+        categoryMarkerImage,
+        {},
+        iconSizeByZoom(0.28)
+      );
 
       map.addSource(activeMarkerSourceId, {
         type: 'geojson',
         data: activeMarkerGeoJSON
       });
-      addPinLayer(map, activeMarkerLayerId, activeMarkerSourceId, 'add-marker');
+      addPinLayer(
+        map,
+        activeMarkerLayerId,
+        activeMarkerSourceId,
+        'add-marker',
+        {},
+        iconSizeByZoom(0.28),
+        [-9, 0]
+      );
 
       map.addSource(searchMarkerSourceId, {
         type: 'geojson',
@@ -405,6 +462,7 @@
           return;
         }
         activeMarkerCoords.set({ lng, lat });
+        addOverlayVisible.set(true);
       });
     });
   });
@@ -438,11 +496,10 @@
 
   $: {
     if (map && map.getLayer(markerLayerId)) {
-      const filter = $categoryFilter
-        ? ['==', ['get', 'category'], $categoryFilter]
+      const filter = $categoryFilter.length
+        ? ['in', ['get', 'category'], ['literal', $categoryFilter]]
         : null;
       map.setFilter(markerLayerId, filter);
-      map.setFilter(markerHoveredLayerId, filter);
     }
   }
 

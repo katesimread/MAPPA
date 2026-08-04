@@ -64,6 +64,7 @@ export async function POST({ request }) {
   ]);
 
   if (error) {
+    console.error('Error saving new moment:', error);
     return json({ error: 'Error saving new moment' }, { status: 500 });
   }
 
