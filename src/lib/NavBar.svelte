@@ -1,9 +1,17 @@
 <script>
   import AddButton from './AddButton.svelte';
-  import { addOverlayVisible, translatedToArabic } from '../stores';
+  import {
+    addOverlayVisible,
+    infoPanelVisible,
+    translatedToArabic
+  } from '../stores';
 
   function openAddOverlay() {
     addOverlayVisible.update(() => true);
+  }
+
+  function toggleInfoPanel() {
+    infoPanelVisible.update((visible) => !visible);
   }
 
   function toggleTranslation() {
@@ -12,6 +20,14 @@
 </script>
 
 <nav>
+  <button
+    on:click={toggleInfoPanel}
+    class="overlay-trigger overlay-trigger--info-toggle"
+    id="info-toggle"
+    aria-label="toggle information panel"
+  >
+    <AddButton />
+  </button>
   <button
     on:click={toggleTranslation}
     class="overlay-trigger overlay-trigger--translate"
@@ -58,10 +74,16 @@
     top: 9px;
   }
 
+  /* Specifically for the info panel toggle button  */
+  .overlay-trigger.overlay-trigger--info-toggle {
+    left: 9px;
+    top: 9px;
+  }
+
   /* Specifically for the translate button  */
   .overlay-trigger.overlay-trigger--translate {
     left: 9px;
-    top: 9px;
+    top: 63px;
     font-size: 0.6em;
     background: #fff;
     border-radius: 4px;

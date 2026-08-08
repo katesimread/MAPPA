@@ -9,6 +9,7 @@
   import {
     addOverlayVisible,
     infoOverlayVisible,
+    infoPanelVisible,
     translatedToArabic
   } from '../stores';
   import qtm_sharing_image from '$lib/assets/qtm_sharing_image.jpg';
@@ -48,55 +49,58 @@
   <meta name="twitter:image" content={qtm_sharing_image} />
 </svelte:head>
 
-<div class="layout">
-  <aside class="info-panel" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
-    <div class="info-content">
-      <img class="logo" src={logo} alt="MAPPA" />
-      {#if $translatedToArabic}
-        <p>
-          يعدّ MAPPA مشروعًا يساعد اللاجئين وطالبي اللجوء على إيجاد الخدمات
-          المتوفرة في المملكة المتحدة.
-        </p>
-        <p>
-          يمكنك استخدام الخريطة التفاعلية للبحث عن الجمعيات الخيرية والمؤسسات
-          الأخرى في منطقتك، وكذلك لإضافة اقتراحات يستفيد منها الآخرون.
-        </p>
-        <p>
-          يمكنك أيضًا استخدام أزرار التصفية في الأسفل للبحث عن مساعدة في السكن،
-          أو دروس اللغة الإنجليزية، أو المستلزمات (كالملابس ومستلزمات النظافة
-          وغيرها)، أو تطوير المهارات، أو الدعم القانوني، أو أي نوع آخر من
-          المساعدة.
-        </p>
-        <p>
-          الهدف هو إنشاء خريطة مجتمعية يتشارك فيها الناس المعرفة، لتسهيل حصول
-          النازحين على المساعدة.
-        </p>
-      {:else}
-        <p>
-          MAPPA is a project that helps refugees and asylum seekers find
-          services in the UK.
-        </p>
-        <p>
-          You can use the interactive map to search for charities and other
-          organisations in your area, as well as to leave suggestions for other
-          people.
-        </p>
-        <p>
-          You can use the filter buttons below to look for help with housing,
-          English lessons, supplies (clothes, toiletries etc.), skills, legal
-          support, or anything else.
-        </p>
-        <p>
-          The aim is to create a community map where people can share knowledge
-          to make accessing help easier.
-        </p>
-      {/if}
-      <CategoryFilter></CategoryFilter>
-    </div>
-    <div class="info-search">
-      <SearchBox></SearchBox>
-    </div>
-  </aside>
+<img class="floating-logo" src={logo} alt="MAPPA" />
+
+<div class="layout" class:panel-open={$infoPanelVisible}>
+  {#if $infoPanelVisible}
+    <aside class="info-panel" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
+      <div class="info-content">
+        {#if $translatedToArabic}
+          <p>
+            يعدّ MAPPA مشروعًا يساعد اللاجئين وطالبي اللجوء على إيجاد الخدمات
+            المتوفرة في المملكة المتحدة.
+          </p>
+          <p>
+            يمكنك استخدام الخريطة التفاعلية للبحث عن الجمعيات الخيرية والمؤسسات
+            الأخرى في منطقتك، وكذلك لإضافة اقتراحات يستفيد منها الآخرون.
+          </p>
+          <p>
+            يمكنك أيضًا استخدام أزرار التصفية في الأسفل للبحث عن مساعدة في
+            السكن، أو دروس اللغة الإنجليزية، أو المستلزمات (كالملابس ومستلزمات
+            النظافة وغيرها)، أو تطوير المهارات، أو الدعم القانوني، أو أي نوع آخر
+            من المساعدة.
+          </p>
+          <p>
+            الهدف هو إنشاء خريطة مجتمعية يتشارك فيها الناس المعرفة، لتسهيل حصول
+            النازحين على المساعدة.
+          </p>
+        {:else}
+          <p>
+            MAPPA is a project that helps refugees and asylum seekers find
+            services in the UK.
+          </p>
+          <p>
+            You can use the interactive map to search for charities and other
+            organisations in your area, as well as to leave suggestions for
+            other people.
+          </p>
+          <p>
+            You can use the filter buttons below to look for help with housing,
+            English lessons, supplies (clothes, toiletries etc.), skills, legal
+            support, or anything else.
+          </p>
+          <p>
+            The aim is to create a community map where people can share
+            knowledge to make accessing help easier.
+          </p>
+        {/if}
+        <CategoryFilter></CategoryFilter>
+      </div>
+      <div class="info-search">
+        <SearchBox></SearchBox>
+      </div>
+    </aside>
+  {/if}
 
   <div class="map-panel">
     <NavBar></NavBar>
@@ -114,6 +118,17 @@
   :global(html, body) {
     height: 100%;
     overflow: hidden;
+  }
+
+  .floating-logo {
+    position: fixed;
+    top: 9px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 2.75rem;
+    width: auto;
+    z-index: var(--logo-z-index);
+    pointer-events: none;
   }
 
   .layout {
@@ -134,13 +149,6 @@
     flex-direction: column;
   }
 
-  .info-panel .logo {
-    display: block;
-    margin: 0 auto;
-    height: 8rem;
-    width: auto;
-  }
-
   .info-content {
     flex: 1;
   }
@@ -150,8 +158,44 @@
   }
 
   .map-panel {
-    width: 66.666%;
+    width: 100%;
     height: 100%;
     position: relative;
+    transition: width 300ms ease;
+  }
+
+  .layout.panel-open .map-panel {
+    width: 66.666%;
+  }
+
+  @media (max-width: 800px) {
+    .floating-logo {
+      height: 2rem;
+    }
+
+    .layout {
+      flex-direction: column;
+    }
+
+    .info-panel {
+      width: 100%;
+      height: auto;
+      max-height: 45vh;
+      order: 2;
+      border-right: none;
+      border-top: 1px solid #e0e0e0;
+      padding: 1.25rem 1.25rem 16px 1.25rem;
+    }
+
+    .map-panel {
+      width: 100%;
+      height: 100vh;
+      order: 1;
+      transition: height 300ms ease;
+    }
+
+    .layout.panel-open .map-panel {
+      height: 55vh;
+    }
   }
 </style>
