@@ -1,10 +1,5 @@
 <script>
-  import {
-    addOverlayVisible,
-    infoOverlayVisible,
-    infoOverlayActiveTab,
-    translatedToArabic
-  } from '../stores';
+  import { addOverlayVisible, translatedToArabic } from '../stores';
   import ActionButton from './ActionButton.svelte';
   import CloseButton from './CloseButton.svelte';
   import { activeMarkerCoords } from '../stores';
@@ -13,6 +8,7 @@
   import { SvelteToast, toast } from '@zerodevx/svelte-toast';
   import { categories } from './categories.js';
 
+  let momentTitle = '';
   let momentDescription = '';
   let momentCategory = '';
   let momentLink = '';
@@ -24,14 +20,11 @@
     addOverlayVisible.update(() => false);
   }
 
-  function openInfoOverlay(tabActive) {
-    infoOverlayVisible.update(() => true);
-    infoOverlayActiveTab(tabActive);
-  }
-
   const showSubmissionSuccessNotification = () => {
     toast.push(
-      'Your story was successfully submitted. It will appear publicly on the map once it has been approved by our moderators.',
+      $translatedToArabic
+        ? 'شكراً لك على وضع علامة على الخريطة! بمجرد موافقة فريق الإدارة، سيتمكن الجميع من رؤية الخدمة التي أضفتها.'
+        : 'Thank you for placing a pin on the map! Once approved by the admin team, everyone will be able to see the service that you’ve added.',
       {
         theme: {
           '--toastBarHeight': 0
@@ -45,6 +38,7 @@
   $: isAddButtonDisabled =
     !$activeMarkerCoords?.lng ||
     !$activeMarkerCoords?.lat ||
+    !momentTitle ||
     !momentDescription ||
     !momentCategory;
 
@@ -57,6 +51,7 @@
     const payload = JSON.stringify({
       lng: $activeMarkerCoords?.lng,
       lat: $activeMarkerCoords?.lat,
+      title: momentTitle,
       description: momentDescription,
       category: momentCategory,
       link: momentLink,
@@ -132,17 +127,24 @@
             </div>
           {/if}
           <form>
+            <input
+              type="text"
+              bind:value={momentTitle}
+              id="txt_title"
+              class="title-input"
+              placeholder={$translatedToArabic ? 'العنوان' : 'Title'}
+            />
+
             <textarea
               bind:value={momentDescription}
               id="txt_contents"
               class="subform"
+              placeholder={$translatedToArabic ? 'معلومات' : 'Info'}
             ></textarea>
 
             <select bind:value={momentCategory} class="category-select">
               <option value="" disabled
-                >{$translatedToArabic
-                  ? 'اختر فئة'
-                  : 'Select a category'}</option
+                >{$translatedToArabic ? 'الفئة' : 'Category'}</option
               >
               {#each categories as category}
                 <option value={category.value}
@@ -157,7 +159,7 @@
               class="link-input"
               placeholder={$translatedToArabic
                 ? 'أضف رابط الموقع الإلكتروني (اختياري)'
-                : 'Share a website link (optional)'}
+                : 'Website link (optional)'}
             />
 
             {#if requestCaptcha}
@@ -180,36 +182,6 @@
 							apply.
 						</div> -->
 
-            <div class="recaptcha-text">
-              {#if $translatedToArabic}
-                بإرسالي هذه المعلومات، أوافق على <a
-                  href="/"
-                  on:click|preventDefault={() => openInfoOverlay(6)}
-                  target="_blank"
-                  rel="noopener">شروط الاستخدام</a
-                >
-                و<a
-                  href="/"
-                  on:click|preventDefault={() => openInfoOverlay(7)}
-                  target="_blank"
-                  rel="noopener">سياسة الخصوصية</a
-                >.
-              {:else}
-                By submitting I agree to the <a
-                  href="/"
-                  on:click|preventDefault={() => openInfoOverlay(6)}
-                  target="_blank"
-                  rel="noopener">Terms of Use</a
-                >
-                and
-                <a
-                  href="/"
-                  on:click|preventDefault={() => openInfoOverlay(7)}
-                  target="_blank"
-                  rel="noopener">Privacy Policy</a
-                >.
-              {/if}
-            </div>
             <ActionButton
               functionOnClick={() => (requestCaptcha = true)}
               isDisabled={isAddButtonDisabled}
@@ -244,7 +216,7 @@
     position: fixed;
     z-index: var(--overlay-z-index);
     top: 0;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.65);
     overflow-x: hidden;
   }
 
@@ -284,12 +256,6 @@
 
   .overlay__section-text > *:last-child {
     margin-bottom: 0;
-  }
-
-  a {
-    text-decoration: underline;
-    text-decoration-color: var(--color-dark);
-    color: var(--color-dark);
   }
 
   @media (max-width: 800px) {
@@ -361,11 +327,6 @@
     }
   }
 
-  .recaptcha-text {
-    margin-top: 0.5em;
-    font-size: 0.75em;
-  }
-
   .subform {
     margin: auto;
     text-align: left;
@@ -376,7 +337,7 @@
     width: 100%;
     font-size: 12pt;
     height: 12em;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
   }
 
@@ -391,7 +352,7 @@
     padding: 0.5em;
     font-family: 'Apfel Grotezk', sans-serif;
     font-size: 12pt;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
     box-sizing: border-box;
     cursor: pointer;
@@ -403,7 +364,18 @@
     padding: 0.5em;
     font-family: 'Apfel Grotezk', sans-serif;
     font-size: 12pt;
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.65);
+    border: 1.01px solid var(--color-dark);
+    box-sizing: border-box;
+  }
+
+  .title-input {
+    width: 100%;
+    margin-bottom: 0.5em;
+    padding: 0.5em;
+    font-family: 'Apfel Grotezk', sans-serif;
+    font-size: 12pt;
+    background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
     box-sizing: border-box;
   }

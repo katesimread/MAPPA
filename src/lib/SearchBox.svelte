@@ -180,12 +180,12 @@
 
   .search-results {
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 0;
     right: 0;
     z-index: 10;
     list-style: none;
-    margin: 4px 0 0;
+    margin: 0 0 4px;
     padding: 0;
     background: white;
     border-radius: 4px;

@@ -93,7 +93,7 @@ div.maplibregl-ctrl-group button:disabled {
 
 div.maplibregl-popup-content,
 div.mapboxgl-popup-content {
-  border-radius: 8px;
+  border-radius: 0px;
   font-size: 1.2em;
   max-width: min(45ch, 75vw);
   width: max-content;
@@ -101,4 +101,28 @@ div.mapboxgl-popup-content {
   font-family: 'Apfel Grotezk', sans-serif;
   line-height: 1.3em;
   padding: 12px;
+}
+
+.maplibregl-popup-content .popup-title {
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.maplibregl-popup-content a.popup-link {
+  display: block;
+  width: fit-content;
+  margin: 8px auto 0;
+  padding: 4px 14px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-dark);
+  background-color: transparent;
+  border: 1.01px solid var(--color-dark);
+}
+
+.maplibregl-popup-content a.popup-link:hover,
+.maplibregl-popup-content a.popup-link:focus {
+  color: var(--color-dark) !important;
+  text-decoration: none !important;
+  text-decoration-color: var(--color-dark) !important;
 }

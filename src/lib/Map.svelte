@@ -3,7 +3,7 @@
   import maplibregl from 'maplibre-gl';
   const { AttributionControl, Map, NavigationControl, Popup } = maplibregl;
   import 'maplibre-gl/dist/maplibre-gl.css';
-  const style = 'https://tiles.openfreemap.org/styles/positron';
+  const style = 'https://tiles.openfreemap.org/styles/liberty';
   import addMarkerImage from '$lib/assets/add-marker.png';
   import housingPinImage from '$lib/assets/pin-housing.png';
   import englishLessonsPinImage from '$lib/assets/pin-english-lessons.png';
@@ -42,9 +42,44 @@
     );
   }
 
-  const markerHeight = 39;
+  // Native pixel height of the pin PNGs (the drawn teardrop touches both the
+  // top and bottom edges of the image, so this is also its rendered height
+  // at icon-size 1) and the scale passed to iconSizeByZoom for the moments
+  // layer. A pin's actual on-screen height at a given zoom is
+  // PIN_IMAGE_HEIGHT * MOMENT_PIN_SCALE * interpolateIconScale(zoom) — used
+  // to keep popups pinned to the top of the marker at any zoom level.
+  const PIN_IMAGE_HEIGHT = 218;
+  const MOMENT_PIN_SCALE = 0.28;
+
+  const ICON_SCALE_STOPS = [
+    [4.75, 0.66],
+    [10, 0.825],
+    [14, 1.32],
+    [18, 2.904]
+  ];
+
+  function interpolateIconScale(zoom) {
+    const stops = ICON_SCALE_STOPS;
+    if (zoom <= stops[0][0]) return stops[0][1];
+    if (zoom >= stops[stops.length - 1][0]) return stops[stops.length - 1][1];
+    for (let i = 0; i < stops.length - 1; i++) {
+      const [z0, v0] = stops[i];
+      const [z1, v1] = stops[i + 1];
+      if (zoom <= z1) {
+        const t = (zoom - z0) / (z1 - z0);
+        return v0 + (v1 - v0) * t;
+      }
+    }
+    return stops[stops.length - 1][1];
+  }
+
+  function markerHeightAtZoom(zoom) {
+    return PIN_IMAGE_HEIGHT * MOMENT_PIN_SCALE * interpolateIconScale(zoom);
+  }
   const markerId = 'moments';
   const markerLayerId = 'moments-layer';
+  const hoverMarkerSourceId = 'hover-marker-source';
+  const hoverMarkerLayerId = 'hover-marker-layer';
   const activeMarkerSourceId = 'active-marker-source';
   const activeMarkerLayerId = 'active-marker-layer';
   const searchMarkerSourceId = 'search-marker-source';
@@ -52,6 +87,11 @@
   const searchMarkerLabelLayerId = 'search-marker-label-layer';
 
   const activeMarkerGeoJSON = {
+    type: 'FeatureCollection',
+    features: []
+  };
+
+  const hoverMarkerGeoJSON = {
     type: 'FeatureCollection',
     features: []
   };
@@ -86,15 +126,73 @@
       'interpolate',
       ['linear'],
       ['zoom'],
-      4.75,
-      ['*', 0.66, scale],
-      10,
-      ['*', 0.825, scale],
-      14,
-      ['*', 1.32, scale],
-      18,
-      ['*', 2.904, scale]
+      ...ICON_SCALE_STOPS.flatMap(([zoom, value]) => [
+        zoom,
+        ['*', value, scale]
+      ])
     ];
+  }
+
+  const HOVER_SCALE = 1.08;
+  const HOVER_DURATION_MS = 600;
+
+  // MapLibre only supports feature-state expressions in paint properties, not
+  // layout ones (icon-size is layout), so a single hovered pin is instead
+  // rendered on a dedicated top layer whose icon-size is animated imperatively
+  // via requestAnimationFrame, while the real pin underneath is filtered out.
+  function makeHoverController(
+    map,
+    { baseLayerId, hoverLayerId, hoverSourceId, hoverGeoJSON, baseScale }
+  ) {
+    let animFrame = null;
+    let currentScale = 1;
+
+    function animateTo(targetScale, onComplete) {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      const startScale = currentScale;
+      const startTime = performance.now();
+
+      function step(now) {
+        const t = Math.min((now - startTime) / HOVER_DURATION_MS, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        currentScale = startScale + (targetScale - startScale) * eased;
+        map.setLayoutProperty(
+          hoverLayerId,
+          'icon-size',
+          iconSizeByZoom(baseScale * currentScale)
+        );
+        if (t < 1) {
+          animFrame = requestAnimationFrame(step);
+        } else {
+          animFrame = null;
+          onComplete?.();
+        }
+      }
+      animFrame = requestAnimationFrame(step);
+    }
+
+    return {
+      setHovered(feature) {
+        hoverGeoJSON.features = [
+          {
+            type: 'Feature',
+            id: feature.id,
+            geometry: feature.geometry,
+            properties: feature.properties
+          }
+        ];
+        map.getSource(hoverSourceId)?.setData(hoverGeoJSON);
+        map.setFilter(baseLayerId, ['!=', ['id'], feature.id]);
+        animateTo(HOVER_SCALE);
+      },
+      clearHovered() {
+        animateTo(1, () => {
+          hoverGeoJSON.features = [];
+          map.getSource(hoverSourceId)?.setData(hoverGeoJSON);
+          map.setFilter(baseLayerId, null);
+        });
+      }
+    };
   }
 
   function addPinLayer(
@@ -121,16 +219,19 @@
     });
   }
 
-  const BACKGROUND_COLOR = '#c9b59f';
-  const WATER_COLOR = '#94a4b8';
-  const ROAD_COLOR = '#945234';
-  const ROAD_CASING_COLOR = '#603522';
-  const FIELDS_COLOR = '#817b60';
-  const BUILDING_COLOR = '#bd8f8b';
-  const BUILDING_OUTLINE_COLOR = '#553732';
-  const RESIDENTIAL_COLOR = '#ac9086';
-  const RAILWAY_COLOR = '#7e5949';
-  const BOUNDARY_COLOR = '#d5c3c0';
+  const BACKGROUND_COLOR = '#d4c4b2';
+  const WATER_COLOR = '#a9b6c6';
+  const ROAD_COLOR = '#a9755d';
+  const ROAD_CASING_COLOR = '#805d4e';
+  const FIELDS_COLOR = '#9a9580';
+  const BUILDING_COLOR = '#caa5a2';
+  const BUILDING_OUTLINE_COLOR = '#775f5b';
+  const RESIDENTIAL_COLOR = '#bda69e';
+  const RAILWAY_COLOR = '#987a6d';
+  const BOUNDARY_COLOR = '#ddcfcd';
+  const SAND_COLOR = '#ebe0ae';
+  const POI_TEXT_COLOR = BUILDING_OUTLINE_COLOR;
+  const POI_HALO_COLOR = BACKGROUND_COLOR;
 
   function recolorBoundaries(map) {
     for (const layerId of ['boundary_2', 'boundary_3', 'boundary_disputed']) {
@@ -158,6 +259,12 @@
         'fill-color',
         RESIDENTIAL_COLOR
       );
+    }
+    if (map.getLayer('landuse_school')) {
+      map.setPaintProperty('landuse_school', 'fill-color', RESIDENTIAL_COLOR);
+    }
+    if (map.getLayer('landuse_hospital')) {
+      map.setPaintProperty('landuse_hospital', 'fill-color', RESIDENTIAL_COLOR);
     }
   }
 
@@ -190,6 +297,26 @@
     }
     if (map.getLayer('park')) {
       map.setPaintProperty('park', 'fill-color', FIELDS_COLOR);
+      map.setPaintProperty('park', 'fill-outline-color', FIELDS_COLOR);
+    }
+    if (map.getLayer('park_outline')) {
+      map.setLayoutProperty('park_outline', 'visibility', 'none');
+    }
+    if (map.getLayer('landcover_grass')) {
+      map.setPaintProperty('landcover_grass', 'fill-color', FIELDS_COLOR);
+    }
+    if (map.getLayer('landcover_wetland')) {
+      map.setPaintProperty('landcover_wetland', 'fill-pattern', undefined);
+      map.setPaintProperty('landcover_wetland', 'fill-color', FIELDS_COLOR);
+    }
+    if (map.getLayer('landuse_cemetery')) {
+      map.setPaintProperty('landuse_cemetery', 'fill-color', FIELDS_COLOR);
+    }
+  }
+
+  function recolorSand(map) {
+    if (map.getLayer('landcover_sand')) {
+      map.setPaintProperty('landcover_sand', 'fill-color', SAND_COLOR);
     }
   }
 
@@ -229,6 +356,16 @@
     }
   }
 
+  function recolorPOIs(map) {
+    for (const layer of map.getStyle().layers) {
+      if (layer.type !== 'symbol' || layer['source-layer'] !== 'poi') {
+        continue;
+      }
+      map.setPaintProperty(layer.id, 'text-color', POI_TEXT_COLOR);
+      map.setPaintProperty(layer.id, 'text-halo-color', POI_HALO_COLOR);
+    }
+  }
+
   onMount(() => {
     map = new Map({
       container: mapContainer,
@@ -257,9 +394,11 @@
       recolorRailways(map);
       recolorWater(map);
       recolorWoodland(map);
+      recolorSand(map);
       recolorBoundaries(map);
       recolorBuildings(map);
       recolorResidential(map);
+      recolorPOIs(map);
       addFieldsLayer(map);
 
       map.addSource(markerId, {
@@ -322,8 +461,29 @@
         markerId,
         categoryMarkerImage,
         {},
-        iconSizeByZoom(0.28)
+        iconSizeByZoom(MOMENT_PIN_SCALE)
       );
+
+      map.addSource(hoverMarkerSourceId, {
+        type: 'geojson',
+        data: hoverMarkerGeoJSON
+      });
+      addPinLayer(
+        map,
+        hoverMarkerLayerId,
+        hoverMarkerSourceId,
+        categoryMarkerImage,
+        {},
+        iconSizeByZoom(MOMENT_PIN_SCALE)
+      );
+
+      const hoverController = makeHoverController(map, {
+        baseLayerId: markerLayerId,
+        hoverLayerId: hoverMarkerLayerId,
+        hoverSourceId: hoverMarkerSourceId,
+        hoverGeoJSON: hoverMarkerGeoJSON,
+        baseScale: MOMENT_PIN_SCALE
+      });
 
       map.addSource(activeMarkerSourceId, {
         type: 'geojson',
@@ -374,7 +534,7 @@
         }
       });
 
-      map.on('click', markerLayerId, function (e) {
+      const momentClickHandler = function (e) {
         isMomentLayerClicked = true;
         if (!e.features || e.features.length === 0) {
           return;
@@ -393,18 +553,27 @@
 
         getMoment(feature.id)
           .then((moment) => {
+            const titleHtml = moment.title
+              ? `<strong class="popup-title">${moment.title}</strong><br>`
+              : '';
             const html = moment.link
-              ? `${moment.description}<br><br><a href="${moment.link}" target="_blank" rel="noopener">Website</a>`
-              : moment.description;
+              ? `${titleHtml}${moment.description}<br><a class="popup-link" href="${moment.link}" target="_blank" rel="noopener">Website</a>`
+              : `${titleHtml}${moment.description}`;
             if (coordinates.length === 2) {
-              new Popup({
-                offset: [0, -markerHeight],
+              const popup = new Popup({
+                offset: [0, -markerHeightAtZoom(map.getZoom())],
                 anchor: 'bottom',
                 maxWidth: 'none'
               })
                 .setLngLat(coordinates)
                 .setHTML(html)
                 .addTo(map);
+
+              const syncOffsetToZoom = () => {
+                popup.setOffset([0, -markerHeightAtZoom(map.getZoom())]);
+              };
+              map.on('zoom', syncOffsetToZoom);
+              popup.on('close', () => map.off('zoom', syncOffsetToZoom));
             } else {
               console.error('Invalid coordinates format');
             }
@@ -412,41 +581,31 @@
           .catch((error) => {
             console.error('Error fetching moment:', error);
           });
-      });
+      };
+      map.on('click', markerLayerId, momentClickHandler);
+      map.on('click', hoverMarkerLayerId, momentClickHandler);
 
       let hoveredFeatureId = null;
 
-      const pointerHoverHandler = (e) => {
-        map.getCanvas().style.cursor = 'pointer';
-        if (e.features && e.features.length > 0) {
-          const newHoveredFeatureId = e.features[0].id;
-          if (
-            hoveredFeatureId !== null &&
-            hoveredFeatureId !== newHoveredFeatureId
-          ) {
-            map.setFeatureState(
-              { source: markerId, id: hoveredFeatureId },
-              { hover: false }
-            );
+      // Queries both layers (rather than binding per-layer enter/move/leave)
+      // because the currently-hovered pin is filtered out of markerLayerId
+      // and rendered on hoverMarkerLayerId instead - a single combined query
+      // avoids losing hover tracking the moment that swap happens.
+      map.on('mousemove', (e) => {
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: [markerLayerId, hoverMarkerLayerId]
+        });
+        if (features.length > 0) {
+          map.getCanvas().style.cursor = 'pointer';
+          const feature = features[0];
+          if (hoveredFeatureId !== feature.id) {
+            hoveredFeatureId = feature.id;
+            hoverController.setHovered(feature);
           }
-          hoveredFeatureId = newHoveredFeatureId;
-          map.setFeatureState(
-            { source: markerId, id: hoveredFeatureId },
-            { hover: true }
-          );
-        }
-      };
-      map.on('mouseenter', markerLayerId, pointerHoverHandler);
-      map.on('mousemove', markerLayerId, pointerHoverHandler);
-
-      map.on('mouseleave', markerLayerId, function () {
-        map.getCanvas().style.cursor = '';
-        if (hoveredFeatureId !== null) {
-          map.setFeatureState(
-            { source: markerId, id: hoveredFeatureId },
-            { hover: false }
-          );
+        } else if (hoveredFeatureId !== null) {
+          map.getCanvas().style.cursor = '';
           hoveredFeatureId = null;
+          hoverController.clearHovered();
         }
       });
 
@@ -458,7 +617,7 @@
 
         const { lng, lat } = e.lngLat;
         if (!isWithinBritishIsles(lng, lat)) {
-          alert('Pins can only be added within the British Isles.');
+          alert('Pins can only be added within the UK.');
           return;
         }
         activeMarkerCoords.set({ lng, lat });

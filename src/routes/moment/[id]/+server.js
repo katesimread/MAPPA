@@ -6,7 +6,7 @@ export async function GET({ params }) {
 
   const { data, error: dbError } = await supabase
     .from('moments')
-    .select('description, link')
+    .select('title, description, link')
     .eq('short_id', Number(id))
     .eq('status', 'approved')
     .single();
@@ -15,5 +15,10 @@ export async function GET({ params }) {
     throw error(404, 'Description not found');
   }
 
-  return json({ short_id: id, description: data.description, link: data.link });
+  return json({
+    short_id: id,
+    title: data.title,
+    description: data.description,
+    link: data.link
+  });
 }

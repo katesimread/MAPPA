@@ -3,11 +3,15 @@ import { supabase } from '$lib/clients/supabaseClient';
 import { CLOUDFLARE_TURNSTILE_SECRET } from '$env/static/private';
 
 export async function POST({ request }) {
-  const { lng, lat, description, category, link, captchaToken } =
+  const { lng, lat, title, description, category, link, captchaToken } =
     await request.json();
 
   if (!captchaToken) {
     return json({ error: 'CAPTCHA token is missing.' }, { status: 400 });
+  }
+
+  if (!title?.trim()) {
+    return json({ error: 'Title cannot be empty.' }, { status: 400 });
   }
 
   if (!description?.trim()) {
@@ -26,10 +30,7 @@ export async function POST({ request }) {
     lat < BRITISH_ISLES_BOUNDS.minLat ||
     lat > BRITISH_ISLES_BOUNDS.maxLat
   ) {
-    return json(
-      { error: 'Location must be within the British Isles.' },
-      { status: 400 }
-    );
+    return json({ error: 'Location must be within the UK.' }, { status: 400 });
   }
 
   const captchaVerifyUrl =
@@ -55,6 +56,7 @@ export async function POST({ request }) {
 
   const { error } = await supabase.from('moments').insert([
     {
+      title,
       description,
       category,
       link: link || null,
