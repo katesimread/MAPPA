@@ -54,9 +54,9 @@
 <style>
   .category-filter {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: max-content;
+    justify-content: center;
     gap: 8px;
-    margin-top: 2rem;
   }
 
   button {
@@ -64,8 +64,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 6px;
-    padding: 10px 6px;
+    gap: 4px;
+    padding: 6px 8px;
     background: white;
     color: #422232;
     border: 1px solid #e0e0e0;
@@ -76,8 +76,7 @@
   }
 
   button img {
-    width: 100%;
-    max-width: 60px;
+    width: 40px;
     height: auto;
   }
 

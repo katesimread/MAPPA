@@ -22,9 +22,6 @@
   let mapContainer;
   let isMomentLayerClicked = false;
 
-  const UK_CENTER = [-3.4, 55.4];
-  const INITIAL_ZOOM = 4.75;
-
   // Keep in sync with BRITISH_ISLES_BOUNDS in src/routes/moments/+server.js
   const BRITISH_ISLES_BOUNDS = {
     minLng: -10.6,
@@ -370,12 +367,20 @@
     map = new Map({
       container: mapContainer,
       style: style,
-      center: UK_CENTER,
-      zoom: INITIAL_ZOOM,
-      minZoom: INITIAL_ZOOM,
+      bounds: [
+        [BRITISH_ISLES_BOUNDS.minLng, BRITISH_ISLES_BOUNDS.minLat],
+        [BRITISH_ISLES_BOUNDS.maxLng, BRITISH_ISLES_BOUNDS.maxLat]
+      ],
+      fitBoundsOptions: { padding: 20 },
       maxZoom: 18,
       attributionControl: false
     });
+    // Zoom in a bit further than the exact UK fit, nudge the view south a
+    // little, and lock zooming out no further than this initial view.
+    map.setZoom(map.getZoom() + 0.15);
+    const initialCenter = map.getCenter();
+    map.setCenter([initialCenter.lng, initialCenter.lat - 0.8]);
+    map.setMinZoom(map.getZoom());
     map.addControl(
       new AttributionControl({
         compact: true

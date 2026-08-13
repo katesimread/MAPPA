@@ -1,49 +1,50 @@
 <script>
-  import AddButton from './AddButton.svelte';
-  import {
-    addOverlayVisible,
-    infoPanelVisible,
-    translatedToArabic
-  } from '../stores';
+  import targetButtonImage from '$lib/assets/target-button.png';
+  import searchButtonImage from '$lib/assets/search-button.png';
+  import { addOverlayVisible, sidePanelVisible } from '../stores';
 
-  function openAddOverlay() {
-    addOverlayVisible.update(() => true);
+  function toggleAddOverlay() {
+    addOverlayVisible.update((visible) => !visible);
   }
 
-  function toggleInfoPanel() {
-    infoPanelVisible.update((visible) => !visible);
-  }
-
-  function toggleTranslation() {
-    translatedToArabic.update((isTranslated) => !isTranslated);
+  function toggleSidePanel() {
+    sidePanelVisible.update((visible) => !visible);
   }
 </script>
 
 <nav>
-  <button
-    on:click={toggleInfoPanel}
-    class="overlay-trigger overlay-trigger--info-toggle"
-    id="info-toggle"
-    aria-label="toggle information panel"
-  >
-    <AddButton />
-  </button>
-  <button
-    on:click={toggleTranslation}
-    class="overlay-trigger overlay-trigger--translate"
-    id="translate"
-    aria-label="toggle Arabic translation"
-  >
-    {$translatedToArabic ? 'English' : 'العربية'}
-  </button>
-  <button
-    on:click={openAddOverlay}
-    class="overlay-trigger overlay-trigger--add"
-    id="add"
-    aria-label="open add overlay"
-  >
-    <AddButton />
-  </button>
+  {#if !$sidePanelVisible}
+    <button
+      on:click={toggleSidePanel}
+      class="overlay-trigger overlay-trigger--info-toggle"
+      id="info-toggle"
+      aria-label="toggle side panel"
+    >
+      <img
+        class="general_button__fadein"
+        src={searchButtonImage}
+        alt=""
+        width="45"
+        height="45"
+      />
+    </button>
+  {/if}
+  {#if !$addOverlayVisible}
+    <button
+      on:click={toggleAddOverlay}
+      class="overlay-trigger overlay-trigger--add"
+      id="add"
+      aria-label="toggle add overlay"
+    >
+      <img
+        class="general_button__fadein"
+        src={targetButtonImage}
+        alt=""
+        width="45"
+        height="45"
+      />
+    </button>
+  {/if}
 </nav>
 
 <style>
@@ -59,7 +60,7 @@
     cursor: pointer;
     font-weight: bold;
     position: fixed;
-    z-index: var(--overlay-trigger-z-index);
+    z-index: 200;
     color: var(--color-dark);
   }
 
@@ -78,19 +79,5 @@
   .overlay-trigger.overlay-trigger--info-toggle {
     left: 9px;
     top: 9px;
-  }
-
-  /* Specifically for the translate button  */
-  .overlay-trigger.overlay-trigger--translate {
-    left: 9px;
-    top: 63px;
-    font-size: 0.6em;
-    background: #fff;
-    border-radius: 4px;
-    padding: 6px 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    color: var(--color-dark);
-    min-width: 60px;
-    text-align: center;
   }
 </style>

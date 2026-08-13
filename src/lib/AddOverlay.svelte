@@ -1,8 +1,8 @@
 <script>
   import { addOverlayVisible, translatedToArabic } from '../stores';
   import ActionButton from './ActionButton.svelte';
-  import CloseButton from './CloseButton.svelte';
   import { activeMarkerCoords } from '../stores';
+  import { fly } from 'svelte/transition';
   import { turnstile } from '@svelte-put/cloudflare-turnstile';
   import { PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY } from '$env/static/public';
   import { SvelteToast, toast } from '@zerodevx/svelte-toast';
@@ -85,12 +85,17 @@
   });
 </script>
 
-<aside class="overlay overlay--add">
-  <div class="action-button-container">
-    <CloseButton functionOnClick={closeAddOverlay} position="right"
-      >close add overlay</CloseButton
-    >
-  </div>
+<aside
+  class="overlay overlay--add"
+  transition:fly={{ x: 100, duration: 300 }}
+>
+  <button
+    class="add-panel-close"
+    on:click={closeAddOverlay}
+    aria-label="close add overlay"
+  >
+    &times;
+  </button>
   <div class="overlay__outer">
     <div class="overlay__content" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
       <section>
@@ -104,26 +109,26 @@
         <div class="overlay__section-text">
           {#if $translatedToArabic}
             <div class="partial_div-numbered">
-              <span>1</span>اضغط على الخريطة لتحديد موقعك.
+              <span>1.</span>اضغط على الخريطة لتحديد موقعك.
             </div>
             <div class="partial_div-numbered">
-              <span>2</span>اكتب اسم الجمعية أو المؤسسة، مع نبذة موجزة عن
+              <span>2.</span>اكتب اسم الجمعية أو المؤسسة، مع نبذة موجزة عن
               الخدمات التي تقدمها. اختر الفئة المناسبة، وأضف رابط الموقع
               الإلكتروني إن توفر.
             </div>
             <div class="partial_div-numbered">
-              <span>3</span>اضغط على زر "إضافة".
+              <span>3.</span>اضغط على زر "إضافة".
             </div>
           {:else}
             <div class="partial_div-numbered">
-              <span>1</span>Click the map to place your pin.
+              <span>1.</span>Click the map to place your pin.
             </div>
             <div class="partial_div-numbered">
-              <span>2</span>Write a little about what it is that they do. Select
+              <span>2.</span>Write a little about what it is that they do. Select
               a category and share the website link if you can.
             </div>
             <div class="partial_div-numbered">
-              <span>3</span>Click the Add button.
+              <span>3.</span>Click the Add button.
             </div>
           {/if}
           <form>
@@ -196,15 +201,6 @@
 
 <style>
   .partial_div-numbered span {
-    border: 1.01px solid var(--color-dark);
-    border-radius: 50%;
-    min-width: 22px;
-    height: 22px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 5px;
-    margin-top: 5px;
     margin-right: 10px;
   }
 
@@ -216,8 +212,26 @@
     position: fixed;
     z-index: var(--overlay-z-index);
     top: 0;
-    background-color: rgba(255, 255, 255, 0.65);
+    background-color: #f0f0f0;
     overflow-x: hidden;
+  }
+
+  .add-panel-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: var(--color-dark);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 1;
   }
 
   .overlay__outer {
@@ -290,7 +304,7 @@
       top: unset;
       width: calc(100vw - 18px);
       left: 50%;
-      bottom: 1%;
+      bottom: calc(var(--top-bar-height) + 8px);
       transform: translateX(-50%);
       z-index: 999999;
     }
@@ -308,12 +322,13 @@
     }
 
     .overlay--add {
-      border-top: none;
-      border-left: var(--color-dark) solid 1px;
-      box-shadow: -4px 0px 6px 0px rgba(0, 0, 0, 0.5);
+      position: fixed;
       top: 9px;
-      right: 9px !important;
-      border: 1.01px solid;
+      right: 9px;
+      border: 1.01px solid var(--color-dark);
+      box-shadow: -4px 0px 6px 0px rgba(0, 0, 0, 0.5);
+      max-height: calc(100% - 9px - var(--top-bar-height) - 9px);
+      overflow-y: auto;
       z-index: 199;
     }
 
@@ -342,7 +357,7 @@
   }
 
   textarea {
-    font-family: 'Apfel Grotezk', sans-serif;
+    font-family: 'Geist Mono', monospace;
     resize: vertical;
   }
 
@@ -350,7 +365,7 @@
     width: 100%;
     margin-top: 0.5em;
     padding: 0.5em;
-    font-family: 'Apfel Grotezk', sans-serif;
+    font-family: 'Geist Mono', monospace;
     font-size: 12pt;
     background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
@@ -362,7 +377,7 @@
     width: 100%;
     margin-top: 0.5em;
     padding: 0.5em;
-    font-family: 'Apfel Grotezk', sans-serif;
+    font-family: 'Geist Mono', monospace;
     font-size: 12pt;
     background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
@@ -373,16 +388,13 @@
     width: 100%;
     margin-bottom: 0.5em;
     padding: 0.5em;
-    font-family: 'Apfel Grotezk', sans-serif;
+    font-family: 'Geist Mono', monospace;
     font-size: 12pt;
     background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
     box-sizing: border-box;
   }
 
-  .action-button-container {
-    right: 0;
-  }
   .overlay--add textarea {
     box-sizing: border-box !important;
     padding: 10px !important;

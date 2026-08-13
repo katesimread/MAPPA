@@ -2,7 +2,8 @@ import { writable } from 'svelte/store';
 
 export const infoOverlayVisible = writable(false);
 export const addOverlayVisible = writable(false);
-export const infoPanelVisible = writable(false);
+export const infoPanelVisible = writable(true);
+export const sidePanelVisible = writable(false);
 export const translatedToArabic = writable(false);
 
 export const infoOverlayActiveTab = (active_tab) => {

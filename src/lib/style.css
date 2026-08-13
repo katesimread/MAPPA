@@ -1,4 +1,4 @@
-@import '@fontsource/apfel-grotezk';
+@import '@fontsource/geist-mono';
 
 :root {
   /* colors */
@@ -18,12 +18,23 @@
   --logo-z-index: 20;
   --overlay-z-index: 15;
   --overlay-trigger-z-index: 5;
+
+  /* layout */
+  --top-bar-height: 44px;
 }
 
 body {
   margin: 0;
-  font-family: 'Apfel Grotezk', sans-serif;
+  font-family: 'Geist Mono', monospace;
   line-height: 1.3;
+}
+
+/* Form controls don't inherit the body font by default in most browsers. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }
 
 /* For the numbered lists in moderation and privacy policy */
@@ -46,17 +57,7 @@ body {
   margin-left: -1px;
 }
 
-.overlay--add button {
-  top: 9px;
-  right: 9px !important;
-}
-
 @media screen and (max-width: 800px) {
-  .overlay--add .close-btn {
-    top: -1px !important;
-    right: -1px !important;
-  }
-
   .overlay--info .close-btn {
     margin-left: 0 !important;
   }

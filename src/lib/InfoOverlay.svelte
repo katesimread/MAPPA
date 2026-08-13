@@ -250,14 +250,14 @@
   .info__tabs.first__row button {
     border-bottom: 0px;
   }
-  :global(.partial_div-numbered) {
+  :global(.overlay--info .partial_div-numbered) {
     display: flex;
     gap: 8px;
   }
-  :global(.partial_div-numbered p) {
+  :global(.overlay--info .partial_div-numbered p) {
     margin-top: 0px;
   }
-  :global(.partial_div-numbered span) {
+  :global(.overlay--info .partial_div-numbered span) {
     border: 1.01px solid var(--color-dark);
     border-radius: 50%;
     min-width: 22px;
