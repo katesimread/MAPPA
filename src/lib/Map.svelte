@@ -17,6 +17,7 @@
     searchLocation,
     categoryFilter
   } from '../stores';
+  import { categories } from './categories.js';
 
   let map;
   let mapContainer;
@@ -170,12 +171,25 @@
 
     return {
       setHovered(feature) {
+        // queryRenderedFeatures() reconstructs properties from the tiled
+        // representation, which serializes array values (like `category`)
+        // back to a JSON string - parse it back so icon expressions that
+        // expect an array (e.g. ['at', 0, ['get', 'category']]) still work.
+        const properties = { ...feature.properties };
+        if (typeof properties.category === 'string') {
+          try {
+            properties.category = JSON.parse(properties.category);
+          } catch {
+            properties.category = [properties.category];
+          }
+        }
+
         hoverGeoJSON.features = [
           {
             type: 'Feature',
             id: feature.id,
             geometry: feature.geometry,
-            properties: feature.properties
+            properties
           }
         ];
         map.getSource(hoverSourceId)?.setData(hoverGeoJSON);
@@ -214,6 +228,34 @@
       },
       paint: paint
     });
+  }
+
+  const CATEGORY_ICON_IMAGE = {
+    housing: 'moment-marker-housing',
+    'english-lessons': 'moment-marker-english-lessons',
+    supplies: 'moment-marker-supplies',
+    skills: 'moment-marker-skills',
+    'legal-support': 'moment-marker-legal-support',
+    other: 'moment-marker-other'
+  };
+
+  // A pin can belong to more than one category, so its icon isn't fixed -
+  // it's the first (in canonical categories.js order) of its own categories
+  // that's also in the active set: every category when no filter is
+  // selected, or just the selected filters when one or more are active.
+  function buildCategoryMarkerImage(activeCategoryFilter) {
+    const activeValues = activeCategoryFilter.length
+      ? categories
+          .map((category) => category.value)
+          .filter((value) => activeCategoryFilter.includes(value))
+      : categories.map((category) => category.value);
+
+    const cases = activeValues.flatMap((value) => [
+      ['in', value, ['get', 'category']],
+      CATEGORY_ICON_IMAGE[value]
+    ]);
+
+    return ['case', ...cases, 'moment-marker-other'];
   }
 
   const BACKGROUND_COLOR = '#d4c4b2';
@@ -445,21 +487,7 @@
         console.error('Error loading GB mask:', error);
       }
 
-      const categoryMarkerImage = [
-        'match',
-        ['get', 'category'],
-        'housing',
-        'moment-marker-housing',
-        'english-lessons',
-        'moment-marker-english-lessons',
-        'skills',
-        'moment-marker-skills',
-        'supplies',
-        'moment-marker-supplies',
-        'legal-support',
-        'moment-marker-legal-support',
-        'moment-marker-other'
-      ];
+      const categoryMarkerImage = buildCategoryMarkerImage($categoryFilter);
       addPinLayer(
         map,
         markerLayerId,
@@ -661,9 +689,26 @@
   $: {
     if (map && map.getLayer(markerLayerId)) {
       const filter = $categoryFilter.length
-        ? ['in', ['get', 'category'], ['literal', $categoryFilter]]
+        ? [
+            'any',
+            ...$categoryFilter.map((category) => [
+              'in',
+              category,
+              ['get', 'category']
+            ])
+          ]
         : null;
       map.setFilter(markerLayerId, filter);
+
+      const categoryMarkerImage = buildCategoryMarkerImage($categoryFilter);
+      map.setLayoutProperty(markerLayerId, 'icon-image', categoryMarkerImage);
+      if (map.getLayer(hoverMarkerLayerId)) {
+        map.setLayoutProperty(
+          hoverMarkerLayerId,
+          'icon-image',
+          categoryMarkerImage
+        );
+      }
     }
   }
 

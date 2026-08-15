@@ -11,8 +11,9 @@
     infoOverlayVisible,
     infoPanelVisible,
     sidePanelVisible,
-    translatedToArabic
+    locale
   } from '../stores';
+  import { locales, rtlLocales, t } from '$lib/i18n.js';
   import qtm_sharing_image from '$lib/assets/qtm_sharing_image.jpg';
   import logo from '$lib/assets/logo.png';
   import SearchBox from '$lib/SearchBox.svelte';
@@ -31,9 +32,7 @@
     sidePanelVisible.set(false);
   }
 
-  function toggleTranslation() {
-    translatedToArabic.update((isTranslated) => !isTranslated);
-  }
+  $: isRTL = rtlLocales.has($locale);
 </script>
 
 <svelte:head>
@@ -68,13 +67,15 @@
 </svelte:head>
 
 <header class="top-bar">
-  <button
-    on:click={toggleTranslation}
+  <select
+    bind:value={$locale}
     class="top-bar__translate"
-    aria-label="toggle Arabic translation"
+    aria-label="choose language"
   >
-    {$translatedToArabic ? 'English' : 'العربية'}
-  </button>
+    {#each locales as l}
+      <option value={l.code}>{l.label}</option>
+    {/each}
+  </select>
   <div class="top-bar__search">
     <SearchBox></SearchBox>
   </div>
@@ -83,7 +84,7 @@
     class="top-bar__info"
     aria-label="show information panel"
   >
-    {$translatedToArabic ? 'معلومات' : 'Information'}
+    {t[$locale].info_button}
   </button>
 </header>
 
@@ -98,7 +99,7 @@
         &times;
       </button>
       <span class="side-panel-title">
-        {$translatedToArabic ? 'اختر فئة' : 'Choose a Category'}
+        {t[$locale].side_panel_title}
       </span>
       <div class="side-panel-content">
         <CategoryFilter></CategoryFilter>
@@ -111,7 +112,7 @@
     <aside
       class="info-panel"
       class:info-panel--shifted={$addOverlayVisible}
-      dir={$translatedToArabic ? 'rtl' : 'ltr'}
+      dir={isRTL ? 'rtl' : 'ltr'}
     >
       <button
         class="info-panel-close"
@@ -122,45 +123,9 @@
       </button>
       <img class="info-panel-logo" src={logo} alt="MAPPA" />
       <div class="info-content">
-        {#if $translatedToArabic}
-          <p>
-            يعدّ MAPPA مشروعًا يساعد اللاجئين وطالبي اللجوء على إيجاد الخدمات
-            المتوفرة في المملكة المتحدة.
-          </p>
-          <p>
-            يمكنك استخدام الخريطة التفاعلية للبحث عن الجمعيات الخيرية والمؤسسات
-            الأخرى في منطقتك، وكذلك لإضافة اقتراحات يستفيد منها الآخرون.
-          </p>
-          <p>
-            يمكنك أيضًا استخدام أزرار التصفية في الأسفل للبحث عن مساعدة في
-            السكن، أو دروس اللغة الإنجليزية، أو المستلزمات (كالملابس ومستلزمات
-            النظافة وغيرها)، أو تطوير المهارات، أو الدعم القانوني، أو أي نوع آخر
-            من المساعدة.
-          </p>
-          <p>
-            الهدف هو إنشاء خريطة مجتمعية يتشارك فيها الناس المعرفة، لتسهيل حصول
-            النازحين على المساعدة.
-          </p>
-        {:else}
-          <p>
-            MAPPA is a project that helps refugees and asylum seekers find
-            services in the UK.
-          </p>
-          <p>
-            You can use the interactive map to search for charities and other
-            organisations in your area, as well as to leave suggestions for
-            other people.
-          </p>
-          <p>
-            You can use the filter buttons below to look for help with housing,
-            English lessons, supplies (clothes, toiletries etc.), skills, legal
-            support, or anything else.
-          </p>
-          <p>
-            The aim is to create a community map where people can share
-            knowledge to make accessing help easier.
-          </p>
-        {/if}
+        {#each t[$locale].info_paragraphs as paragraph}
+          <p>{paragraph}</p>
+        {/each}
       </div>
     </aside>
   {/if}
@@ -212,6 +177,11 @@
     padding: 6px 10px;
     border: 1px solid var(--color-dark);
     border-radius: 4px;
+  }
+
+  .top-bar__translate {
+    font-family: inherit;
+    max-width: 120px;
   }
 
   .top-bar__search {

@@ -1,5 +1,6 @@
 <script>
-  import { categoryFilter, translatedToArabic } from '../stores';
+  import { categoryFilter, locale } from '../stores';
+  import { rtlLocales } from './i18n.js';
   import { categories } from './categories.js';
   import suppliesIcon from '$lib/assets/category-supplies.png';
   import housingIcon from '$lib/assets/category-housing.png';
@@ -16,9 +17,11 @@
     'legal-support': legalSupportIcon
   };
 
+  const otherCategory = categories.find((category) => category.value === 'other');
+
   const options = [
     ...categories.filter((category) => category.value !== 'other'),
-    { value: null, en: 'Other', ar: 'أخرى' }
+    { value: null, labels: otherCategory.labels }
   ];
 
   function select(value) {
@@ -34,7 +37,7 @@
   }
 </script>
 
-<div class="category-filter" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
+<div class="category-filter" dir={rtlLocales.has($locale) ? 'rtl' : 'ltr'}>
   {#each options as option}
     <button
       class:active={option.value !== null &&
@@ -46,7 +49,7 @@
       {:else if icons[option.value]}
         <img src={icons[option.value]} alt="" />
       {/if}
-      <span>{$translatedToArabic ? option.ar : option.en}</span>
+      <span>{option.labels[$locale]}</span>
     </button>
   {/each}
 </div>

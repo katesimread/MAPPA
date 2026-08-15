@@ -1,5 +1,7 @@
 <script>
-  import { addOverlayVisible, translatedToArabic } from '../stores';
+  import { onMount, onDestroy } from 'svelte';
+  import { addOverlayVisible, locale } from '../stores';
+  import { rtlLocales, t } from './i18n.js';
   import ActionButton from './ActionButton.svelte';
   import { activeMarkerCoords } from '../stores';
   import { fly } from 'svelte/transition';
@@ -10,29 +12,55 @@
 
   let momentTitle = '';
   let momentDescription = '';
-  let momentCategory = '';
+  /** @type {string[]} */
+  let momentCategories = [];
   let momentLink = '';
   let captchaToken = '';
   let isAddButtonDisabled = true;
   let requestCaptcha = false;
+  /** @type {HTMLDetailsElement} */
+  let categoryDropdownEl;
 
   function closeAddOverlay() {
     addOverlayVisible.update(() => false);
   }
 
-  const showSubmissionSuccessNotification = () => {
-    toast.push(
-      $translatedToArabic
-        ? 'شكراً لك على وضع علامة على الخريطة! بمجرد موافقة فريق الإدارة، سيتمكن الجميع من رؤية الخدمة التي أضفتها.'
-        : 'Thank you for placing a pin on the map! Once approved by the admin team, everyone will be able to see the service that you’ve added.',
-      {
-        theme: {
-          '--toastBarHeight': 0
-        },
+  function toggleCategory(value) {
+    momentCategories = momentCategories.includes(value)
+      ? momentCategories.filter((v) => v !== value)
+      : [...momentCategories, value];
+  }
 
-        duration: 5000
-      }
-    );
+  function handleDocumentClick(e) {
+    if (categoryDropdownEl && !categoryDropdownEl.contains(e.target)) {
+      categoryDropdownEl.open = false;
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('click', handleDocumentClick);
+  });
+
+  onDestroy(() => {
+    document.removeEventListener('click', handleDocumentClick);
+  });
+
+  $: selectedCategoryLabel = momentCategories.length
+    ? momentCategories
+        .map(
+          (value) => categories.find((c) => c.value === value)?.labels[$locale]
+        )
+        .join(', ')
+    : t[$locale].category_placeholder;
+
+  const showSubmissionSuccessNotification = () => {
+    toast.push(t[$locale].toast_success, {
+      theme: {
+        '--toastBarHeight': 0
+      },
+
+      duration: 5000
+    });
   };
 
   $: isAddButtonDisabled =
@@ -40,7 +68,7 @@
     !$activeMarkerCoords?.lat ||
     !momentTitle ||
     !momentDescription ||
-    !momentCategory;
+    !momentCategories.length;
 
   async function handleAddMoment() {
     if (!captchaToken) {
@@ -53,7 +81,7 @@
       lat: $activeMarkerCoords?.lat,
       title: momentTitle,
       description: momentDescription,
-      category: momentCategory,
+      category: momentCategories,
       link: momentLink,
       captchaToken
     });
@@ -94,74 +122,56 @@
     &times;
   </button>
   <div class="overlay__outer">
-    <div class="overlay__content" dir={$translatedToArabic ? 'rtl' : 'ltr'}>
+    <div class="overlay__content" dir={rtlLocales.has($locale) ? 'rtl' : 'ltr'}>
       <section>
         <div class="overlay__section-title">
-          {#if $translatedToArabic}
-            هل لديك خدمة تريد مشاركتها؟
-          {:else}
-            Do you have a service that you would like to share?
-          {/if}
+          {t[$locale].add_section_title}
         </div>
         <div class="overlay__section-text">
-          {#if $translatedToArabic}
+          {#each t[$locale].add_steps as step, i}
             <div class="partial_div-numbered">
-              <span>1.</span>اضغط على الخريطة لتحديد موقعك.
+              <span>{i + 1}.</span>{step}
             </div>
-            <div class="partial_div-numbered">
-              <span>2.</span>اكتب اسم الجمعية أو المؤسسة، مع نبذة موجزة عن
-              الخدمات التي تقدمها. اختر الفئة المناسبة، وأضف رابط الموقع
-              الإلكتروني إن توفر.
-            </div>
-            <div class="partial_div-numbered">
-              <span>3.</span>اضغط على زر "إضافة".
-            </div>
-          {:else}
-            <div class="partial_div-numbered">
-              <span>1.</span>Click the map to place your pin.
-            </div>
-            <div class="partial_div-numbered">
-              <span>2.</span>Write a little about what it is that they do.
-              Select a category and share the website link if you can.
-            </div>
-            <div class="partial_div-numbered">
-              <span>3.</span>Click the Add button.
-            </div>
-          {/if}
+          {/each}
           <form>
             <input
               type="text"
               bind:value={momentTitle}
               id="txt_title"
               class="title-input"
-              placeholder={$translatedToArabic ? 'العنوان' : 'Title'}
+              placeholder={t[$locale].title_placeholder}
             />
 
             <textarea
               bind:value={momentDescription}
               id="txt_contents"
               class="subform"
-              placeholder={$translatedToArabic ? 'معلومات' : 'Info'}
+              placeholder={t[$locale].info_placeholder}
             ></textarea>
 
-            <select bind:value={momentCategory} class="category-select">
-              <option value="" disabled
-                >{$translatedToArabic ? 'الفئة' : 'Category'}</option
+            <details class="category-select" bind:this={categoryDropdownEl}>
+              <summary class="category-select__summary"
+                >{selectedCategoryLabel}</summary
               >
-              {#each categories as category}
-                <option value={category.value}
-                  >{$translatedToArabic ? category.ar : category.en}</option
-                >
-              {/each}
-            </select>
+              <div class="category-select__options">
+                {#each categories as category}
+                  <label class="category-select__option">
+                    <input
+                      type="checkbox"
+                      checked={momentCategories.includes(category.value)}
+                      on:change={() => toggleCategory(category.value)}
+                    />
+                    {category.labels[$locale]}
+                  </label>
+                {/each}
+              </div>
+            </details>
 
             <input
               type="text"
               bind:value={momentLink}
               class="link-input"
-              placeholder={$translatedToArabic
-                ? 'أضف رابط الموقع الإلكتروني (اختياري)'
-                : 'Website link (optional)'}
+              placeholder={t[$locale].link_placeholder}
             />
 
             {#if requestCaptcha}
@@ -187,7 +197,7 @@
             <ActionButton
               functionOnClick={() => (requestCaptcha = true)}
               isDisabled={isAddButtonDisabled}
-              >{$translatedToArabic ? 'إضافة' : 'Add'}</ActionButton
+              >{t[$locale].add_button}</ActionButton
             >
           </form>
         </div>
@@ -359,15 +369,51 @@
   }
 
   .category-select {
+    position: relative;
     width: 100%;
     margin-top: 0.5em;
-    padding: 0.5em;
     font-family: 'Geist Mono', monospace;
     font-size: 12pt;
+    box-sizing: border-box;
+  }
+
+  .category-select__summary {
+    padding: 0.5em;
     background-color: rgba(255, 255, 255, 0.65);
     border: 1.01px solid var(--color-dark);
     box-sizing: border-box;
     cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .category-select__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .category-select__options {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0;
+    right: 0;
+    z-index: 10;
+    max-height: 12em;
+    overflow-y: auto;
+    background-color: white;
+    border: 1.01px solid var(--color-dark);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .category-select__option {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em;
+    cursor: pointer;
+  }
+
+  .category-select__option:hover {
+    background-color: #f5e6ed;
   }
 
   .link-input {

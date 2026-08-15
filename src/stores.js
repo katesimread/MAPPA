@@ -4,7 +4,7 @@ export const infoOverlayVisible = writable(false);
 export const addOverlayVisible = writable(false);
 export const infoPanelVisible = writable(true);
 export const sidePanelVisible = writable(false);
-export const translatedToArabic = writable(false);
+export const locale = writable('en');
 
 export const infoOverlayActiveTab = (active_tab) => {
   if (typeof active_tab === 'number') {

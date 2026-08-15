@@ -1,6 +1,7 @@
 <script>
   import { PUBLIC_OS_API_KEY } from '$env/static/public';
-  import { searchLocation, translatedToArabic } from '../stores';
+  import { searchLocation, locale } from '../stores';
+  import { rtlLocales, t } from './i18n.js';
   import proj4 from 'proj4';
 
   proj4.defs(
@@ -110,15 +111,13 @@
   <div class="search-input-row">
     <input
       type="text"
-      placeholder={$translatedToArabic
-        ? 'ابحث عن مكان أو شارع أو متجر'
-        : 'Search for a place, street, or shop...'}
-      dir={$translatedToArabic ? 'rtl' : 'ltr'}
+      placeholder={t[$locale].search_placeholder}
+      dir={rtlLocales.has($locale) ? 'rtl' : 'ltr'}
       bind:value={query}
       on:keydown={handleKeydown}
     />
     <button on:click={search} disabled={loading}>
-      {loading ? '...' : $translatedToArabic ? 'بحث' : 'Search'}
+      {loading ? '...' : t[$locale].search_button}
     </button>
   </div>
 

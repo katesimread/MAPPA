@@ -37,12 +37,15 @@ function generateRandomMoment(id) {
     coordinates: roundCoordinates([longitude, latitude], 6)
   };
 
+  const numCategories = Math.floor(Math.random() * 2) + 1;
+  const shuffled = [...CATEGORIES].sort(() => Math.random() - 0.5);
+
   const feature = {
     type: 'Feature',
     id: id,
     geometry: point,
     properties: {
-      category: CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)]
+      category: shuffled.slice(0, numCategories)
     }
   };
 

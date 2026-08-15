@@ -1,6 +1,9 @@
 import { json } from '@sveltejs/kit';
 import { supabase } from '$lib/clients/supabaseClient';
 import { CLOUDFLARE_TURNSTILE_SECRET } from '$env/static/private';
+import { categories } from '$lib/categories.js';
+
+const VALID_CATEGORIES = new Set(categories.map((category) => category.value));
 
 export async function POST({ request }) {
   const { lng, lat, title, description, category, link, captchaToken } =
@@ -16,6 +19,19 @@ export async function POST({ request }) {
 
   if (!description?.trim()) {
     return json({ error: 'Description cannot be empty.' }, { status: 400 });
+  }
+
+  if (
+    !Array.isArray(category) ||
+    category.length === 0 ||
+    !category.every((c) => VALID_CATEGORIES.has(c))
+  ) {
+    return json(
+      { error: 'At least one valid category is required.' },
+      {
+        status: 400
+      }
+    );
   }
 
   const BRITISH_ISLES_BOUNDS = {
