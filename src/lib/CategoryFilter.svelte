@@ -17,7 +17,9 @@
     'legal-support': legalSupportIcon
   };
 
-  const otherCategory = categories.find((category) => category.value === 'other');
+  const otherCategory = categories.find(
+    (category) => category.value === 'other'
+  );
 
   const options = [
     ...categories.filter((category) => category.value !== 'other'),

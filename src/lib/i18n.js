@@ -291,6 +291,6 @@ export const t = {
     link_placeholder: 'Ka wadaag link websayd (ikhtiyaari)',
     add_button: 'Ku dar',
     toast_success:
-      "Waad ku mahadsan tahay inaad summad ku dhigtay khariidadda! Marka uu ansixiyo kooxda maamulka, qof kastaa wuu arki doonaa adeegga aad ku dartay."
+      'Waad ku mahadsan tahay inaad summad ku dhigtay khariidadda! Marka uu ansixiyo kooxda maamulka, qof kastaa wuu arki doonaa adeegga aad ku dartay.'
   }
 };
