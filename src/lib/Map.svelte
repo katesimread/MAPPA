@@ -15,7 +15,8 @@
     activeMarkerCoords,
     addOverlayVisible,
     searchLocation,
-    categoryFilter
+    categoryFilter,
+    locale
   } from '../stores';
   import { categories } from './categories.js';
 
@@ -101,7 +102,7 @@
 
   async function getMoment(id) {
     try {
-      const response = await fetch(`/moment/${id}`);
+      const response = await fetch(`/moment/${id}?lang=${$locale}`);
       const moment = await response.json();
       return moment;
     } catch (error) {
