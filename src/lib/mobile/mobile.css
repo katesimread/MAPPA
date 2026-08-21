@@ -1,0 +1,24 @@
+@import '@fontsource/geist-mono';
+
+/* Mobile-route-only styles. Never imported by the desktop route. */
+:root {
+  --color-dark: #231f20;
+  --color-pink: #f4b9d6;
+  --color-pink-bright: #ff00ff;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  font-family: 'Geist Mono', monospace;
+  line-height: 1.3;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}

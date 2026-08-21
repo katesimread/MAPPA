@@ -261,7 +261,7 @@
     width: min(90vw, 480px);
     max-height: 85vh;
     overflow-y: auto;
-    padding: 2rem;
+    padding: 1rem 2rem 2rem;
     box-sizing: border-box;
     background: #f0f0f0;
     border: 1px solid #e0e0e0;
@@ -290,13 +290,17 @@
 
   .info-panel-logo {
     display: block;
-    margin: 0 auto 1.5rem;
-    height: 3.5rem;
+    margin: 0 auto 0.5rem;
+    height: 5.5rem;
     width: auto;
   }
 
   .info-content {
     flex: 1;
+  }
+
+  .info-content p:first-child {
+    margin-top: 0;
   }
 
   .map-panel {

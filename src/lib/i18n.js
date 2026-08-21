@@ -39,6 +39,7 @@ export const t = {
     info_placeholder: 'Info',
     category_placeholder: 'Category',
     link_placeholder: 'Website link (optional)',
+    website_link: 'Website',
     add_button: 'Add',
     toast_success:
       'Thank you for placing a pin on the map! Once approved by the admin team, everyone will be able to see the service that you’ve added.'
@@ -64,6 +65,7 @@ export const t = {
     info_placeholder: 'معلومات',
     category_placeholder: 'الفئة',
     link_placeholder: 'أضف رابط الموقع الإلكتروني (اختياري)',
+    website_link: 'الموقع الإلكتروني',
     add_button: 'إضافة',
     toast_success:
       'شكراً لك على وضع علامة على الخريطة! بمجرد موافقة فريق الإدارة، سيتمكن الجميع من رؤية الخدمة التي أضفتها.'
@@ -89,6 +91,7 @@ export const t = {
     info_placeholder: 'اطلاعات',
     category_placeholder: 'دسته',
     link_placeholder: 'لینک وب‌سایت را وارد کنید (اختیاری)',
+    website_link: 'وب‌سایت',
     add_button: 'افزودن',
     toast_success:
       'از اینکه یک سنجاق روی نقشه قرار دادید متشکریم! پس از تأیید توسط تیم مدیریت، همه می‌توانند خدمتی را که اضافه کرده‌اید ببینند.'
@@ -114,6 +117,7 @@ export const t = {
     info_placeholder: 'معلومات',
     category_placeholder: 'ورشو',
     link_placeholder: 'د ویب‌پاڼې لینک شریک کړئ (اختیاري)',
+    website_link: 'ویب پاڼه',
     add_button: 'اضافه کول',
     toast_success:
       'ستاسو د نقشې پر مخ د پن ایښودو لپاره مننه! کله چې د اداری ټیم لخوا تصویب شي، هرڅوک به هغه خدمت وویني چې تاسو اضافه کړی دی.'
@@ -139,6 +143,7 @@ export const t = {
     info_placeholder: 'زانیاری',
     category_placeholder: 'جۆر',
     link_placeholder: 'لینکی ماڵپەڕ هاوبەش بکە (هەڵبژاردەیی)',
+    website_link: 'ماڵپەڕ',
     add_button: 'زیادکردن',
     toast_success:
       'سوپاس بۆ دانانی نیشانەیەک لەسەر نەخشەکە! کاتێک لەلایەن تیمی بەڕێوەبردنەوە پەسەند بکرێت، هەموو کەس دەتوانێت ئەو خزمەتگوزارییە ببینێت کە تۆ زیادت کردووە.'
@@ -164,6 +169,7 @@ export const t = {
     info_placeholder: 'معلومات',
     category_placeholder: 'زمرہ',
     link_placeholder: 'ویب سائٹ لنک شیئر کریں (اختیاری)',
+    website_link: 'ویب سائٹ',
     add_button: 'شامل کریں',
     toast_success:
       'نقشے پر پن لگانے کا شکریہ! ایڈمن ٹیم کی منظوری کے بعد، ہر کوئی وہ خدمت دیکھ سکے گا جو آپ نے شامل کی ہے۔'
@@ -189,6 +195,7 @@ export const t = {
     info_placeholder: 'ሓበሬታ',
     category_placeholder: 'ምድብ',
     link_placeholder: 'ሊንክ ወብሳይት ኣካፍል (ኣማራጺ)',
+    website_link: 'ወብሳይት',
     add_button: 'ወስኽ',
     toast_success:
       'ኣብ ካርታ ምልክት ስለ ዘቐመጥካ ነመስግነካ! ብጋንታ ምሕደራ ምስ ጸደቐ፡ ኩሉ ሰብ እቲ ዝወሰኽካዮ ኣገልግሎት ክርኢ ይኽእል።'
@@ -214,6 +221,7 @@ export const t = {
     info_placeholder: 'Info',
     category_placeholder: 'Kategoria',
     link_placeholder: 'Lidhje faqe interneti (opsionale)',
+    website_link: 'Faqja e internetit',
     add_button: 'Shto',
     toast_success:
       'Faleminderit që vendose një shenjues në hartë! Sapo të miratohet nga ekipi administrativ, të gjithë do të mund ta shohin shërbimin që shtove.'
@@ -239,6 +247,7 @@ export const t = {
     info_placeholder: 'Informații',
     category_placeholder: 'Categorie',
     link_placeholder: 'Link site web (opțional)',
+    website_link: 'Site web',
     add_button: 'Adaugă',
     toast_success:
       'Vă mulțumim că ați plasat un marcaj pe hartă! Odată aprobat de echipa de administrare, toată lumea va putea vedea serviciul pe care l-ați adăugat.'
@@ -264,6 +273,7 @@ export const t = {
     info_placeholder: 'তথ্য',
     category_placeholder: 'বিভাগ',
     link_placeholder: 'একটি ওয়েবসাইট লিঙ্ক শেয়ার করুন (ঐচ্ছিক)',
+    website_link: 'ওয়েবসাইট',
     add_button: 'যোগ করুন',
     toast_success:
       'মানচিত্রে পিন স্থাপন করার জন্য ধন্যবাদ! প্রশাসনিক দল অনুমোদন করার পর, আপনি যে পরিষেবা যোগ করেছেন তা সবাই দেখতে পাবে।'
@@ -289,6 +299,7 @@ export const t = {
     info_placeholder: 'Macluumaad',
     category_placeholder: 'Qaybta',
     link_placeholder: 'Ka wadaag link websayd (ikhtiyaari)',
+    website_link: 'Websaydka',
     add_button: 'Ku dar',
     toast_success:
       'Waad ku mahadsan tahay inaad summad ku dhigtay khariidadda! Marka uu ansixiyo kooxda maamulka, qof kastaa wuu arki doonaa adeegga aad ku dartay.'

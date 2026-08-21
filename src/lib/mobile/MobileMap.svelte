@@ -1,8 +1,9 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import maplibregl from 'maplibre-gl';
-  const { AttributionControl, Map, NavigationControl, Popup } = maplibregl;
+  const { AttributionControl, Map, NavigationControl } = maplibregl;
   import 'maplibre-gl/dist/maplibre-gl.css';
+  import './mobile-maplibre.css';
   const style = 'https://tiles.openfreemap.org/styles/liberty';
   import addMarkerImage from '$lib/assets/add-marker.png';
   import housingPinImage from '$lib/assets/pin-housing.png';
@@ -13,13 +14,12 @@
   import otherPinImage from '$lib/assets/pin-other.png';
   import {
     activeMarkerCoords,
-    addOverlayVisible,
     searchLocation,
     categoryFilter,
     locale
-  } from '../stores';
-  import { categories } from './categories.js';
-  import { t } from './i18n.js';
+  } from '../../stores';
+  import { activeSheet, activeMoment } from './mobileStore.js';
+  import { categories } from '../categories.js';
 
   let map;
   let mapContainer;
@@ -42,15 +42,6 @@
     );
   }
 
-  // Native pixel height of the pin PNGs (the drawn teardrop touches both the
-  // top and bottom edges of the image, so this is also its rendered height
-  // at icon-size 1) and the scale passed to iconSizeByZoom for the moments
-  // layer. A pin's actual on-screen height at a given zoom is
-  // PIN_IMAGE_HEIGHT * MOMENT_PIN_SCALE * interpolateIconScale(zoom) — used
-  // to keep popups pinned to the top of the marker at any zoom level.
-  const PIN_IMAGE_HEIGHT = 218;
-  const MOMENT_PIN_SCALE = 0.28;
-
   const ICON_SCALE_STOPS = [
     [4.75, 0.66],
     [10, 0.825],
@@ -58,24 +49,6 @@
     [18, 2.904]
   ];
 
-  function interpolateIconScale(zoom) {
-    const stops = ICON_SCALE_STOPS;
-    if (zoom <= stops[0][0]) return stops[0][1];
-    if (zoom >= stops[stops.length - 1][0]) return stops[stops.length - 1][1];
-    for (let i = 0; i < stops.length - 1; i++) {
-      const [z0, v0] = stops[i];
-      const [z1, v1] = stops[i + 1];
-      if (zoom <= z1) {
-        const t = (zoom - z0) / (z1 - z0);
-        return v0 + (v1 - v0) * t;
-      }
-    }
-    return stops[stops.length - 1][1];
-  }
-
-  function markerHeightAtZoom(zoom) {
-    return PIN_IMAGE_HEIGHT * MOMENT_PIN_SCALE * interpolateIconScale(zoom);
-  }
   const markerId = 'moments';
   const markerLayerId = 'moments-layer';
   const hoverMarkerSourceId = 'hover-marker-source';
@@ -86,20 +59,9 @@
   const searchMarkerDotLayerId = 'search-marker-dot-layer';
   const searchMarkerLabelLayerId = 'search-marker-label-layer';
 
-  const activeMarkerGeoJSON = {
-    type: 'FeatureCollection',
-    features: []
-  };
-
-  const hoverMarkerGeoJSON = {
-    type: 'FeatureCollection',
-    features: []
-  };
-
-  const searchMarkerGeoJSON = {
-    type: 'FeatureCollection',
-    features: []
-  };
+  const activeMarkerGeoJSON = { type: 'FeatureCollection', features: [] };
+  const hoverMarkerGeoJSON = { type: 'FeatureCollection', features: [] };
+  const searchMarkerGeoJSON = { type: 'FeatureCollection', features: [] };
 
   async function getMoment(id) {
     try {
@@ -136,10 +98,6 @@
   const HOVER_SCALE = 1.08;
   const HOVER_DURATION_MS = 600;
 
-  // MapLibre only supports feature-state expressions in paint properties, not
-  // layout ones (icon-size is layout), so a single hovered pin is instead
-  // rendered on a dedicated top layer whose icon-size is animated imperatively
-  // via requestAnimationFrame, while the real pin underneath is filtered out.
   function makeHoverController(
     map,
     { baseLayerId, hoverLayerId, hoverSourceId, hoverGeoJSON, baseScale }
@@ -173,10 +131,6 @@
 
     return {
       setHovered(feature) {
-        // queryRenderedFeatures() reconstructs properties from the tiled
-        // representation, which serializes array values (like `category`)
-        // back to a JSON string - parse it back so icon expressions that
-        // expect an array (e.g. ['at', 0, ['get', 'category']]) still work.
         const properties = { ...feature.properties };
         if (typeof properties.category === 'string') {
           try {
@@ -241,10 +195,6 @@
     other: 'moment-marker-other'
   };
 
-  // A pin can belong to more than one category, so its icon isn't fixed -
-  // it's the first (in canonical categories.js order) of its own categories
-  // that's also in the active set: every category when no filter is
-  // selected, or just the selected filters when one or more are active.
   function buildCategoryMarkerImage(activeCategoryFilter) {
     const activeValues = activeCategoryFilter.length
       ? categories
@@ -407,6 +357,34 @@
     }
   }
 
+  // Shifts the map's visible-area padding so a tapped point isn't hidden
+  // behind whichever bottom sheet is about to cover the lower part of the
+  // screen - this is what keeps the map and sheet from ever overlapping in
+  // a way that hides content.
+  function padForSheet(fraction) {
+    if (!map) return;
+    const bottom = Math.round(window.innerHeight * fraction);
+    map.easeTo({ padding: { top: 0, left: 0, right: 0, bottom }, duration: 300 });
+  }
+
+  function clearPadding() {
+    if (!map) return;
+    map.easeTo({
+      padding: { top: 0, left: 0, right: 0, bottom: 0 },
+      duration: 200
+    });
+  }
+
+  $: if (map) {
+    if ($activeSheet === 'moment') {
+      padForSheet(0.55);
+    } else if ($activeSheet === 'add') {
+      padForSheet(0.8);
+    } else if ($activeSheet === null) {
+      clearPadding();
+    }
+  }
+
   onMount(() => {
     map = new Map({
       container: mapContainer,
@@ -419,23 +397,15 @@
       maxZoom: 18,
       attributionControl: false
     });
-    // Zoom in a bit further than the exact UK fit, nudge the view south a
-    // little, and lock zooming out no further than this initial view.
     map.setZoom(map.getZoom() + 0.15);
     const initialCenter = map.getCenter();
     map.setCenter([initialCenter.lng, initialCenter.lat - 0.8]);
     map.setMinZoom(map.getZoom());
-    map.addControl(
-      new AttributionControl({
-        compact: true
-      })
-    );
+    map.addControl(new AttributionControl({ compact: true }));
     map.addControl(
       new NavigationControl({ showCompass: false }),
       'bottom-right'
     );
-
-    map.keyboard.enable();
 
     map.on('load', async () => {
       recolorBackground(map);
@@ -452,7 +422,7 @@
 
       map.addSource(markerId, {
         type: 'geojson',
-        data: 'data/moments.json'
+        data: '/data/moments.json'
       });
 
       try {
@@ -483,12 +453,7 @@
         console.error('Error loading marker images:', error);
       }
 
-      try {
-        // Mask disabled: relying on the OS style's own land/sea rendering instead.
-      } catch (error) {
-        console.error('Error loading GB mask:', error);
-      }
-
+      const MOMENT_PIN_SCALE = 0.28;
       const categoryMarkerImage = buildCategoryMarkerImage($categoryFilter);
       addPinLayer(
         map,
@@ -543,7 +508,7 @@
         type: 'circle',
         source: searchMarkerSourceId,
         paint: {
-          'circle-radius': 6,
+          'circle-radius': 7,
           'circle-color': '#422232',
           'circle-stroke-width': 2,
           'circle-stroke-color': '#ffffff'
@@ -556,7 +521,7 @@
         layout: {
           'text-field': ['get', 'label'],
           'text-font': ['Noto Sans Bold'],
-          'text-size': 14,
+          'text-size': 16,
           'text-anchor': 'top',
           'text-offset': [0, 0.7],
           'text-allow-overlap': true,
@@ -588,29 +553,10 @@
 
         getMoment(feature.id)
           .then((moment) => {
-            const titleHtml = moment.title
-              ? `<strong class="popup-title">${moment.title}</strong><br>`
-              : '';
-            const html = moment.link
-              ? `${titleHtml}${moment.description}<br><a class="popup-link" href="${moment.link}" target="_blank" rel="noopener">${t[$locale].website_link}</a>`
-              : `${titleHtml}${moment.description}`;
+            activeMoment.set(moment);
+            activeSheet.set('moment');
             if (coordinates.length === 2) {
-              const popup = new Popup({
-                offset: [0, -markerHeightAtZoom(map.getZoom())],
-                anchor: 'bottom',
-                maxWidth: 'none'
-              })
-                .setLngLat(coordinates)
-                .setHTML(html)
-                .addTo(map);
-
-              const syncOffsetToZoom = () => {
-                popup.setOffset([0, -markerHeightAtZoom(map.getZoom())]);
-              };
-              map.on('zoom', syncOffsetToZoom);
-              popup.on('close', () => map.off('zoom', syncOffsetToZoom));
-            } else {
-              console.error('Invalid coordinates format');
+              map.easeTo({ center: coordinates, duration: 300 });
             }
           })
           .catch((error) => {
@@ -622,10 +568,6 @@
 
       let hoveredFeatureId = null;
 
-      // Queries both layers (rather than binding per-layer enter/move/leave)
-      // because the currently-hovered pin is filtered out of markerLayerId
-      // and rendered on hoverMarkerLayerId instead - a single combined query
-      // avoids losing hover tracking the moment that swap happens.
       map.on('mousemove', (e) => {
         const features = map.queryRenderedFeatures(e.point, {
           layers: [markerLayerId, hoverMarkerLayerId]
@@ -656,7 +598,7 @@
           return;
         }
         activeMarkerCoords.set({ lng, lat });
-        addOverlayVisible.set(true);
+        activeSheet.set('add');
       });
     });
   });
@@ -741,10 +683,10 @@
   });
 </script>
 
-<div id="map" bind:this={mapContainer}></div>
+<div id="mobile-map" bind:this={mapContainer}></div>
 
 <style>
-  #map {
+  #mobile-map {
     position: absolute;
     width: 100%;
     height: 100%;

@@ -1,0 +1,49 @@
+/******************************************************************************/
+/* Mobile-only overrides for the maplibre zoom controls: much bigger touch
+   targets than the desktop version, and positioned clear of the bottom
+   dock/sheets. Only loaded by the mobile route. */
+/******************************************************************************/
+div.maplibregl-ctrl-group button {
+  height: 52px;
+  width: 52px;
+  border-radius: 8px;
+  background-color: var(--color-pink, #f4b9d6);
+  border: 1.5px solid var(--color-dark, #231f20);
+  color: var(--color-dark, #231f20);
+}
+
+div.maplibregl-ctrl-group button:hover {
+  background-color: var(--color-pink, #f4b9d6) !important;
+}
+
+div.maplibregl-ctrl-group button:disabled {
+  background-color: #ccc !important;
+}
+
+.maplibregl-ctrl button:disabled .maplibregl-ctrl-icon {
+  opacity: 1;
+}
+
+.maplibregl-ctrl-group {
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+body .maplibregl-ctrl-bottom-right .maplibregl-ctrl {
+  margin-right: 10px;
+  margin-bottom: 106px;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 11px;
+}
+
+.maplibregl-ctrl button.maplibregl-ctrl-zoom-in .maplibregl-ctrl-icon {
+  background-image: url('/zoom-in.png?v=5') !important;
+  background-size: 30px 30px;
+}
+
+.maplibregl-ctrl button.maplibregl-ctrl-zoom-out .maplibregl-ctrl-icon {
+  background-image: url('/zoom-out.png?v=5') !important;
+  background-size: 30px 30px;
+}
